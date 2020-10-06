@@ -49,6 +49,9 @@
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Room.cs" />
+    <Compile Include="RoomPlayer.cs" />
+    <Compile Include="Tags.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
