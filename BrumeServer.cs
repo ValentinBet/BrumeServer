@@ -85,9 +85,89 @@ namespace BrumeServer
                 {
                     QuitRoomReceiver(sender, e);
                 }
-
+                else if (message.Tag == Tags.StartGame)
+                {
+                    StartGame(sender, e);
+                }
+                else if (message.Tag == Tags.QuitGame)
+                {
+                    QuitGame(sender, e);
+                }
             }
         }
+
+        private void StartGame(object sender, MessageReceivedEventArgs e)
+        {
+            ushort _roomId;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _roomId = reader.ReadUInt16();
+                }
+
+                Room _room = rooms[_roomId];
+
+                SpawnPlayers(_room);
+
+                using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
+                {
+                    using (Message Message = Message.Create(Tags.StartGame, StartGameWriter))
+                    {
+                        foreach (IClient client in ClientManager.GetAllClients().Where(x => _room.Players.Contains(players[x])))
+                            client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+        private void SpawnPlayers(Room room)
+        {
+
+            /////////////////////////////////////////////////
+            //////////////// FAIRE SPAWN LES JOUEURS
+            /////////////////////////////////////////////////
+            
+            using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.SpawnObjPlayer, StartGameWriter))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => room.Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        private void QuitGame(object sender, MessageReceivedEventArgs e)
+        {
+            ushort _roomId;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _roomId = reader.ReadUInt16();
+                }
+
+                Room _room = rooms[_roomId];
+
+                using (DarkRiftWriter QuitGameWriter = DarkRiftWriter.Create())
+                {
+                    using (Message Message = Message.Create(Tags.QuitGame, QuitGameWriter))
+                    {
+                        foreach (IClient client in ClientManager.GetAllClients().Where(x => _room.Players.Contains(players[x])))
+                            client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+
+                /////////////////////////////////////////////////
+                //////////////// Rajouter le retour OU suppression de la room ETC
+                /////////////////////////////////////////////////
+            }
+        }
+
+
 
         private void SendAllRooms(object sender, ClientConnectedEventArgs e)
         {
