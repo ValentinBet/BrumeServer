@@ -13,7 +13,7 @@ namespace BrumeServer
         public byte ColorR { get; set; }
         public byte ColorG { get; set; }
         public byte ColorB { get; set; }
-
+        public ushort RoomID { get; set; }
         public RoomPlayer(ushort ID, bool isHost, string name, byte colorR, byte colorG, byte colorB)
         {
             this.ID = ID;

@@ -13,6 +13,7 @@ namespace BrumeServer
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += ClientConnected;
+            ClientManager.ClientDisconnected += ClientDisconnected;
         }
 
         public override bool ThreadSafe => false;
@@ -50,10 +51,23 @@ namespace BrumeServer
                 }
             }
 
-            SendAllRooms(sender ,e);
+            SendAllRooms(sender, e);
 
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
+
+        private void ClientDisconnected(object sender, ClientDisconnectedEventArgs e)
+        {
+            RoomPlayer _roomPlayer = players[e.Client];
+
+            if (_roomPlayer.RoomID != 0)
+            {
+                QuitRoom(e.Client, rooms[_roomPlayer.RoomID]);
+            }
+
+            players.Remove(e.Client);
+        }
+
 
         private void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)
         {
@@ -66,6 +80,10 @@ namespace BrumeServer
                 else if (message.Tag == Tags.JoinRoom)
                 {
                     JoinRoom(sender, e);
+                }
+                else if (message.Tag == Tags.QuitRoom)
+                {
+                    QuitRoomReceiver(sender, e);
                 }
 
             }
@@ -91,31 +109,32 @@ namespace BrumeServer
 
         private void CreateRoom(object sender, MessageReceivedEventArgs e)
         {
-            string name = "";
+            string _name = "";
             lastRoomID += 1;
 
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    name = reader.ReadString();
+                    _name = reader.ReadString();
                 }
             }
 
             Room newRoom = new Room(
             lastRoomID,
-            name,
+            _name,
             players[e.Client]
             );
 
             players[e.Client].IsHost = true;
+            players[e.Client].RoomID = lastRoomID;
 
             using (DarkRiftWriter RoomWriter = DarkRiftWriter.Create())
             {
                 // Nouvelle room crée recu par tout les joueurs
 
                 RoomWriter.Write(lastRoomID);
-                RoomWriter.Write(name);
+                RoomWriter.Write(_name);
                 RoomWriter.Write(newRoom.Host.ID);
 
                 using (Message Message = Message.Create(Tags.CreateRoom, RoomWriter))
@@ -133,7 +152,7 @@ namespace BrumeServer
                 // Recu par le créateur de la room
 
                 ClientRoomWriter.Write(lastRoomID);
-                ClientRoomWriter.Write(name);
+                ClientRoomWriter.Write(_name);
                 ClientRoomWriter.Write(newRoom.Host.ID);
 
                 using (Message Message = Message.Create(Tags.CreateRoom, ClientRoomWriter))
@@ -146,7 +165,7 @@ namespace BrumeServer
 
         private void JoinRoom(object sender, MessageReceivedEventArgs e)
         {
-            ushort roomID = 0;
+            ushort _roomID = 0;
             Random r = new Random();
             using (Message message = e.GetMessage() as Message)
             {
@@ -156,18 +175,19 @@ namespace BrumeServer
 
                     if (isRandomJoin)
                     {
-                        roomID = (ushort)(r.Next(0, rooms.Count));
+                        _roomID = (ushort)(r.Next(0, rooms.Count));
                     }
                     else
                     {
-                        roomID = reader.ReadUInt16();
+                        _roomID = reader.ReadUInt16();
                     }
                 }
 
 
             }
 
-            rooms[roomID].Players.Add(players[e.Client]);
+            rooms[_roomID].Players.Add(players[e.Client]);
+            players[e.Client].RoomID = _roomID;
 
             using (DarkRiftWriter RoomWriter = DarkRiftWriter.Create())
             {
@@ -177,7 +197,7 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.PlayerJoinedRoom, RoomWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => x != e.Client && rooms[roomID].Players.Contains(players[x])))
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => x != e.Client && rooms[_roomID].Players.Contains(players[x])))
                         client.SendMessage(Message, SendMode.Reliable);
                 }
             }
@@ -187,10 +207,10 @@ namespace BrumeServer
             {
                 // Recu par le joueur qui rejoint la room
 
-                JoinWriter.Write(rooms[roomID].ID);
+                JoinWriter.Write(rooms[_roomID].ID);
 
                 // Liste des joueurs déja présents dans la room
-                RoomPlayer[] _playerInThisRoom = rooms[roomID].Players.ToArray();
+                RoomPlayer[] _playerInThisRoom = rooms[_roomID].Players.ToArray();
                 JoinWriter.Write(_playerInThisRoom.Length);
 
                 foreach (RoomPlayer p in _playerInThisRoom)
@@ -206,5 +226,107 @@ namespace BrumeServer
 
         }
 
+        private void QuitRoomReceiver(object sender, MessageReceivedEventArgs e)
+        {
+            Room _room;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _roomID = reader.ReadUInt16();
+                    _room = rooms[_roomID];
+                }
+            }
+
+            QuitRoom(e.Client, _room);
+        }
+        private void QuitRoom(IClient Eclient, Room room)
+        {
+
+            using (DarkRiftWriter QuitWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                QuitWriter.Write(players[Eclient]);
+
+                using (Message Message = Message.Create(Tags.PlayerQuitRoom, QuitWriter))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => x != Eclient && rooms[room.ID].Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+
+            rooms[room.ID].Players.Remove(players[Eclient]);
+            rooms[room.ID].Players.RemoveAll(x => x == null);
+            players[Eclient].RoomID = 0;
+
+            if (players[Eclient].IsHost)
+            {
+                SwapHost(Eclient, room);
+            }
+
+            using (DarkRiftWriter QuitWriter = DarkRiftWriter.Create())
+            {
+                // Recu par le joueur qui quitte la room
+
+                using (Message Message = Message.Create(Tags.QuitRoom, QuitWriter))
+                {
+                    Eclient.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        private void SwapHost(IClient Eclient, Room room)
+        {
+            players[Eclient].IsHost = false;
+
+            if (room.Players.Count == 0)
+            {
+                RoomEmpty(rooms[room.ID]);
+                return;
+            }
+
+            RoomPlayer newhost = room.Players.First();
+
+            using (DarkRiftWriter SwapHostWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                SwapHostWriter.Write(newhost.ID);
+
+                using (Message Message = Message.Create(Tags.SwapHostRoom, SwapHostWriter))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => room.Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+
+            newhost.IsHost = true;
+            room.Host = newhost;
+
+        }
+
+        private void RoomEmpty(Room room)
+        {
+            if (room.Players.Count == 0)
+            {
+                rooms.Remove(room.ID);
+
+                using (DarkRiftWriter DeleteRoomWriter = DarkRiftWriter.Create())
+                {
+                    // Recu par les joueurs déja présent dans la room
+
+                    DeleteRoomWriter.Write(room.ID);
+
+                    using (Message Message = Message.Create(Tags.DeleteRoom, DeleteRoomWriter))
+                    {
+                        foreach (IClient client in ClientManager.GetAllClients())
+                            client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+
+            }
+        }
     }
 }

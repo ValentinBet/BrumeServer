@@ -22,6 +22,11 @@ namespace BrumeServer
             Players.Add(host);
         }
 
+        public Room()
+        {
+
+        }
+
         public void Deserialize(DeserializeEvent e)
         {
             this.ID = e.Reader.ReadUInt16();
