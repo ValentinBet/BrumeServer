@@ -37,6 +37,21 @@ namespace BrumeServer
 
             players.Add(e.Client, newPlayer);
 
+            using (DarkRiftWriter NewPlayerWriter = DarkRiftWriter.Create())
+            {
+
+                // Recu par le créateur de la room
+
+                NewPlayerWriter.Write(newPlayer);
+
+                using (Message Message = Message.Create(Tags.PlayerConnected, NewPlayerWriter))
+                {
+                    e.Client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+
+            SendAllRooms(sender ,e);
+
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
 
@@ -55,6 +70,25 @@ namespace BrumeServer
 
             }
         }
+
+        private void SendAllRooms(object sender, ClientConnectedEventArgs e)
+        {
+            using (DarkRiftWriter SendAllRoomsWriter = DarkRiftWriter.Create())
+            {
+                SendAllRoomsWriter.Write(rooms.Count);
+
+                foreach (KeyValuePair<ushort, Room> r in rooms)
+                {
+                    SendAllRoomsWriter.Write(r.Value);
+                }
+
+                using (Message Message = Message.Create(Tags.SendAllRooms, SendAllRoomsWriter))
+                {
+                    e.Client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
         private void CreateRoom(object sender, MessageReceivedEventArgs e)
         {
             string name = "";
@@ -132,6 +166,7 @@ namespace BrumeServer
 
 
             }
+
             rooms[roomID].Players.Add(players[e.Client]);
 
             using (DarkRiftWriter RoomWriter = DarkRiftWriter.Create())
@@ -147,11 +182,12 @@ namespace BrumeServer
                 }
             }
 
+
             using (DarkRiftWriter JoinWriter = DarkRiftWriter.Create())
             {
                 // Recu par le joueur qui rejoint la room
 
-                JoinWriter.Write(roomID);
+                JoinWriter.Write(rooms[roomID].ID);
 
                 // Liste des joueurs déja présents dans la room
                 RoomPlayer[] _playerInThisRoom = rooms[roomID].Players.ToArray();
