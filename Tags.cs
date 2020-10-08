@@ -10,6 +10,7 @@ namespace BrumeServer
     {
         // Lobby >>       
         public static readonly ushort PlayerConnected = 0;
+        public static readonly ushort Ping = 2;
         public static readonly ushort SendAllRooms = 5;
         public static readonly ushort CreateRoom = 10;
         public static readonly ushort DeleteRoom = 20;
@@ -22,7 +23,8 @@ namespace BrumeServer
         public static readonly ushort MovePlayerTag = 70;
         public static readonly ushort SupprObjPlayer = 80;
         public static readonly ushort StartGame = 90;
-        public static readonly ushort QuitGame = 100; 
+        public static readonly ushort QuitGame = 100;
+        public static readonly ushort ChangeName = 110;
         // <<
     }
 }

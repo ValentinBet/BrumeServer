@@ -10,6 +10,7 @@ namespace BrumeServer
 {
     public class BrumeServer : Plugin
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += ClientConnected;
@@ -31,7 +32,7 @@ namespace BrumeServer
             RoomPlayer newPlayer = new RoomPlayer(
                 e.Client.ID,
                 false,
-                "TEST",
+                "Null",
                  (byte)r.Next(0, 200),
                  (byte)r.Next(0, 200),
                  (byte)r.Next(0, 200));
@@ -93,7 +94,42 @@ namespace BrumeServer
                 {
                     QuitGame(sender, e);
                 }
+                else if (message.Tag == Tags.ChangeName)
+                {
+                    ChangeName(sender, e);
+                }
+
             }
+        }
+
+        private void ChangeName(object sender, MessageReceivedEventArgs e)
+        {
+            string _name = "";
+
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _name = reader.ReadString();
+                }
+
+                players[e.Client].Name = _name;
+
+            }
+
+            using (DarkRiftWriter NameWriter = DarkRiftWriter.Create())
+            {
+                NameWriter.Write(_name);
+
+                using (Message Message = Message.Create(Tags.ChangeName, NameWriter))
+                {
+                    e.Client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+
+            WriteEvent("Player : " + e.Client.ID + " change his name to --> " + _name, LogType.Info);
+
         }
 
         private void StartGame(object sender, MessageReceivedEventArgs e)
@@ -128,7 +164,7 @@ namespace BrumeServer
             /////////////////////////////////////////////////
             //////////////// FAIRE SPAWN LES JOUEURS
             /////////////////////////////////////////////////
-            
+
             using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
             {
                 using (Message Message = Message.Create(Tags.SpawnObjPlayer, StartGameWriter))
@@ -177,6 +213,7 @@ namespace BrumeServer
 
                 foreach (KeyValuePair<ushort, Room> r in rooms)
                 {
+                    r.Value.PlayersCount = r.Value.Players.Count();
                     SendAllRoomsWriter.Write(r.Value);
                 }
 
@@ -189,20 +226,11 @@ namespace BrumeServer
 
         private void CreateRoom(object sender, MessageReceivedEventArgs e)
         {
-            string _name = "";
             lastRoomID += 1;
-
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    _name = reader.ReadString();
-                }
-            }
 
             Room newRoom = new Room(
             lastRoomID,
-            _name,
+            players[e.Client].Name + "'s room",
             players[e.Client]
             );
 
@@ -213,8 +241,7 @@ namespace BrumeServer
             {
                 // Nouvelle room crée recu par tout les joueurs
 
-                RoomWriter.Write(lastRoomID);
-                RoomWriter.Write(_name);
+                RoomWriter.Write(newRoom);
                 RoomWriter.Write(newRoom.Host.ID);
 
                 using (Message Message = Message.Create(Tags.CreateRoom, RoomWriter))
@@ -231,8 +258,7 @@ namespace BrumeServer
 
                 // Recu par le créateur de la room
 
-                ClientRoomWriter.Write(lastRoomID);
-                ClientRoomWriter.Write(_name);
+                ClientRoomWriter.Write(newRoom);
                 ClientRoomWriter.Write(newRoom.Host.ID);
 
                 using (Message Message = Message.Create(Tags.CreateRoom, ClientRoomWriter))
