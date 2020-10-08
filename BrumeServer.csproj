@@ -50,8 +50,9 @@
     <Compile Include="BrumeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Room.cs" />
-    <Compile Include="RoomPlayer.cs" />
+    <Compile Include="PlayerData.cs" />
     <Compile Include="Tags.cs" />
+    <Compile Include="GameData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

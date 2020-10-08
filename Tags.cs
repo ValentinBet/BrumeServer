@@ -25,6 +25,7 @@ namespace BrumeServer
         public static readonly ushort StartGame = 90;
         public static readonly ushort QuitGame = 100;
         public static readonly ushort ChangeName = 110;
+        public static readonly ushort ChangeTeam = 120;
         // <<
     }
 }

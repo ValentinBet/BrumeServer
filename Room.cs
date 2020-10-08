@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BrumeServer.GameData;
 
 namespace BrumeServer
 {
@@ -11,11 +12,11 @@ namespace BrumeServer
         public string Name { get; set; }
         public int MaxPlayers { get; set; }
         public int PlayersCount { get; set; }
-        public RoomPlayer Host { get; set; }
+        public PlayerData Host { get; set; }
 
-        public List<RoomPlayer> Players = new List<RoomPlayer>();
+        public List<PlayerData> Players = new List<PlayerData>();
 
-        public Room(ushort ID, string name, RoomPlayer host, int maxPlayers = 12)
+        public Room(ushort ID, string name, PlayerData host, int maxPlayers = 12)
         {
             this.ID = ID;
             this.Name = name;
@@ -28,6 +29,35 @@ namespace BrumeServer
         {
 
         }
+
+        public Team GetTeamWithLowestPlayerAmount()
+        {
+            if (GetPlayerAmountInCertainTeam(Team.red) > GetPlayerAmountInCertainTeam(Team.blue))
+            {
+                return Team.blue;
+            }
+            else
+            {
+                return Team.blue;
+            }
+        }
+
+
+        public int GetPlayerAmountInCertainTeam(Team team)
+        {
+            int _count = 0;
+
+            foreach (PlayerData player in Players)
+            {
+                if (player.playerTeam == team)
+                {
+                    _count++;
+                }
+            }
+
+            return _count;
+        }
+
 
         public void Deserialize(DeserializeEvent e)
         {
