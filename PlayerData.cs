@@ -13,6 +13,8 @@ namespace BrumeServer
         public string Name { get; set; }
         public ushort RoomID { get; set; }
 
+        public bool IsReady { get; set; }
+
         public Team playerTeam = Team.none;
 
         public Character playerCharacter = Character.none;
@@ -24,12 +26,12 @@ namespace BrumeServer
             this.Name = name;
             this.playerTeam = team;
         }
-
         public void Deserialize(DeserializeEvent e)
         {
             this.ID = e.Reader.ReadUInt16();
             this.IsHost = e.Reader.ReadBoolean();
             this.Name = e.Reader.ReadString();
+            this.IsReady = e.Reader.ReadBoolean();
             this.playerTeam = (Team)e.Reader.ReadUInt16();
             this.playerCharacter = (Character)e.Reader.ReadUInt16();
         }
@@ -39,6 +41,7 @@ namespace BrumeServer
             e.Writer.Write(ID);
             e.Writer.Write(IsHost);
             e.Writer.Write(Name);
+            e.Writer.Write(IsReady);
             e.Writer.Write((ushort)playerTeam);
             e.Writer.Write((ushort)playerCharacter);
         }

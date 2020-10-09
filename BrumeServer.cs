@@ -17,7 +17,6 @@ namespace BrumeServer
             ClientManager.ClientConnected += ClientConnected;
             ClientManager.ClientDisconnected += ClientDisconnected;
         }
-
         public override bool ThreadSafe => false;
         public override Version Version => new Version(1, 0, 0);
 
@@ -101,6 +100,14 @@ namespace BrumeServer
                 {
                     ChangeTeam(sender, e);
                 }
+                else if (message.Tag == Tags.SetReady)
+                {
+                    SetReady(sender, e);
+                }
+                else if (message.Tag == Tags.SetCharacter)
+                {
+                    SelectCharacter(sender, e);
+                }
             }
         }
 
@@ -165,6 +172,33 @@ namespace BrumeServer
 
             WriteEvent("Player : " + e.Client.ID + " change his Team to --> " + players[e.Client].playerTeam, LogType.Info);
 
+        }
+
+        private void SetReady(object sender, MessageReceivedEventArgs e)
+        {
+            bool value = false;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    value = reader.ReadBoolean();
+                }
+            }
+
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                TeamWriter.Write(players[e.Client].ID);
+                TeamWriter.Write(value);
+
+                using (Message Message = Message.Create(Tags.SetReady, TeamWriter))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
         }
 
         #endregion
@@ -288,6 +322,7 @@ namespace BrumeServer
                 // Recu par le joueur qui rejoint la room
 
                 JoinWriter.Write(rooms[_roomID].ID);
+                JoinWriter.Write((ushort)players[e.Client].playerTeam);
 
                 // Liste des joueurs déja présents dans la room
                 PlayerData[] _playerInThisRoom = rooms[_roomID].Players.ToArray();
@@ -426,8 +461,6 @@ namespace BrumeServer
 
                 Room _room = rooms[_roomId];
 
-                SpawnPlayers(_room);
-
                 using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
                 {
                     using (Message Message = Message.Create(Tags.StartGame, StartGameWriter))
@@ -481,6 +514,36 @@ namespace BrumeServer
                 /////////////////////////////////////////////////
                 //////////////// Rajouter le retour OU suppression de la room ETC
                 /////////////////////////////////////////////////
+            }
+        }
+        #endregion
+
+        #region ChampSelect
+
+        private void SelectCharacter(object sender, MessageReceivedEventArgs e)
+        {
+            Character _character;
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _character = (Character)reader.ReadUInt16();
+                }
+            }
+
+            players[e.Client].playerCharacter = _character;
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+
+                Writer.Write(e.Client.ID);
+                Writer.Write((ushort)_character);
+
+                using (Message Message = Message.Create(Tags.SetCharacter, Writer))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
             }
         }
         #endregion
