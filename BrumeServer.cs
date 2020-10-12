@@ -84,9 +84,9 @@ namespace BrumeServer
                 {
                     QuitRoomReceiver(sender, e);
                 }
-                else if (message.Tag == Tags.StartGame)
+                else if (message.Tag == Tags.LobbyStartGame)
                 {
-                    StartGame(sender, e);
+                    LobbyStartGame(sender, e);
                 }
                 else if (message.Tag == Tags.QuitGame)
                 {
@@ -107,6 +107,10 @@ namespace BrumeServer
                 else if (message.Tag == Tags.SetCharacter)
                 {
                     SelectCharacter(sender, e);
+                }
+                else if (message.Tag == Tags.StartGame)
+                {
+                    StartGame(sender, e);
                 }
             }
         }
@@ -448,7 +452,7 @@ namespace BrumeServer
         #endregion
 
         #region Game
-        private void StartGame(object sender, MessageReceivedEventArgs e)
+        private void LobbyStartGame(object sender, MessageReceivedEventArgs e)
         {
             ushort _roomId;
 
@@ -463,7 +467,7 @@ namespace BrumeServer
 
                 using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
                 {
-                    using (Message Message = Message.Create(Tags.StartGame, StartGameWriter))
+                    using (Message Message = Message.Create(Tags.LobbyStartGame, StartGameWriter))
                     {
                         foreach (IClient client in ClientManager.GetAllClients().Where(x => _room.Players.Contains(players[x])))
                             client.SendMessage(Message, SendMode.Reliable);
@@ -546,6 +550,29 @@ namespace BrumeServer
                 }
             }
         }
+
+        private void StartGame(object sender, MessageReceivedEventArgs e)
+        {
+            ushort _roomID;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _roomID = reader.ReadUInt16();
+                }
+            }
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.StartGame, Writer))
+                {
+                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
         #endregion
     }
 }
