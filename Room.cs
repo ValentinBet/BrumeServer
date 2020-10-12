@@ -85,9 +85,111 @@ namespace BrumeServer
 
                     foreach (KeyValuePair<IClient, PlayerData> client in Players)
                     {
-                            client.Key.SendMessage(Message, SendMode.Reliable);
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                     }
 
+                }
+            }
+        }
+
+        public void SpawnObjPlayer(object sender, MessageReceivedEventArgs e)
+        {
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                ushort ID = e.Client.ID;
+
+                GameWriter.Write(ID);
+
+                using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+
+            //SpawnOldPlayers
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+
+                    ushort ID = client.Key.ID;
+                    GameWriter.Write(ID);
+
+                    using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
+                    {
+                        e.Client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+        public void SendMovement(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                if (message.Tag == Tags.MovePlayerTag)
+                {
+                    using (DarkRiftReader reader = message.GetReader())
+                    {
+                        float newX = reader.ReadSingle();
+                        float newZ = reader.ReadSingle();
+
+                        float rotaX = reader.ReadSingle();
+                        float rotaY = reader.ReadSingle();
+                        float rotaZ = reader.ReadSingle();
+
+                        using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write(e.Client.ID);
+
+                            writer.Write(newX);
+                            writer.Write(newZ);
+
+                            writer.Write(rotaX);
+                            writer.Write(rotaY);
+                            writer.Write(rotaZ);
+
+                            message.Serialize(writer);
+                        }
+
+                        foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                        {
+                            if(e.Client == client.Key) { continue; }
+                            client.Key.SendMessage(message, e.SendMode);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void SendAnim(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    float foward = reader.ReadSingle();
+                    float right = reader.ReadSingle();
+
+                    using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                    {
+                        writer.Write(e.Client.ID);
+
+                        writer.Write(foward);
+                        writer.Write(right);
+
+                        message.Serialize(writer);
+                    }
+
+                    foreach (KeyValuePair<IClient, PlayerData> c in Players)
+                    {
+                        if (e.Client == c.Key) { continue; }
+                        c.Key.SendMessage(message, e.SendMode);
+                    }
                 }
             }
         }
