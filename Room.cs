@@ -1,6 +1,8 @@
 ﻿using DarkRift;
+using DarkRift.Server;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using static BrumeServer.GameData;
 
@@ -71,6 +73,19 @@ namespace BrumeServer
             e.Writer.Write(ID);
             e.Writer.Write(Name);
             e.Writer.Write(MaxPlayers);
+        }
+
+
+        public void StartGame()
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.StartGame, Writer))
+                {
+                    foreach (IClient client in Players)
+                        client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
         }
     }
 }

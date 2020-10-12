@@ -563,14 +563,8 @@ namespace BrumeServer
                 }
             }
 
-            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-            {
-                using (Message Message = Message.Create(Tags.StartGame, Writer))
-                {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
-                }
-            }
+            rooms[_roomID].StartGame();
+
         }
 
         #endregion
