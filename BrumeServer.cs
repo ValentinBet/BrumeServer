@@ -169,8 +169,8 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.ChangeTeam, TeamWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
 
@@ -199,8 +199,8 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.SetReady, TeamWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
         }
@@ -235,7 +235,8 @@ namespace BrumeServer
             Room newRoom = new Room(
             lastRoomID,
             players[e.Client].Name + "'s room",
-            players[e.Client]
+            players[e.Client],
+            e.Client
             );
 
             players[e.Client].IsHost = true;
@@ -300,7 +301,7 @@ namespace BrumeServer
 
             }
 
-            rooms[_roomID].Players.Add(players[e.Client]);
+            rooms[_roomID].Players.Add(e.Client, players[e.Client]);
             players[e.Client].RoomID = _roomID;
             players[e.Client].playerTeam = rooms[_roomID].GetTeamWithLowestPlayerAmount();
 
@@ -314,8 +315,8 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.PlayerJoinedRoom, RoomWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => x != e.Client && rooms[_roomID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[_roomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
 
@@ -329,12 +330,11 @@ namespace BrumeServer
                 JoinWriter.Write((ushort)players[e.Client].playerTeam);
 
                 // Liste des joueurs déja présents dans la room
-                PlayerData[] _playerInThisRoom = rooms[_roomID].Players.ToArray();
-                JoinWriter.Write(_playerInThisRoom.Length);
+                JoinWriter.Write(rooms[_roomID].Players.Count);
 
-                foreach (PlayerData p in _playerInThisRoom)
+                foreach (KeyValuePair<IClient, PlayerData> p in rooms[_roomID].Players)
                 {
-                    JoinWriter.Write(p);
+                    JoinWriter.Write(p.Value);
                 }
 
                 using (Message Message = Message.Create(Tags.JoinRoom, JoinWriter))
@@ -371,13 +371,12 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.PlayerQuitRoom, QuitWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => x != Eclient && rooms[room.ID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[room.ID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
 
-            rooms[room.ID].Players.Remove(players[Eclient]);
-            rooms[room.ID].Players.RemoveAll(x => x == null);
+            rooms[room.ID].Players.Remove(Eclient);
             players[Eclient].RoomID = 0;
             players[Eclient].playerTeam = Team.none;
 
@@ -407,7 +406,7 @@ namespace BrumeServer
                 return;
             }
 
-            PlayerData newhost = room.Players.First();
+            PlayerData newhost = room.Players.First().Value;
 
             using (DarkRiftWriter SwapHostWriter = DarkRiftWriter.Create())
             {
@@ -417,8 +416,8 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.SwapHostRoom, SwapHostWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => room.Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in room.Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
 
@@ -469,8 +468,8 @@ namespace BrumeServer
                 {
                     using (Message Message = Message.Create(Tags.LobbyStartGame, StartGameWriter))
                     {
-                        foreach (IClient client in ClientManager.GetAllClients().Where(x => _room.Players.Contains(players[x])))
-                            client.SendMessage(Message, SendMode.Reliable);
+                        foreach (KeyValuePair<IClient, PlayerData> client in _room.Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
                     }
                 }
             }
@@ -487,8 +486,8 @@ namespace BrumeServer
             {
                 using (Message Message = Message.Create(Tags.SpawnObjPlayer, StartGameWriter))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => room.Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in room.Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
         }
@@ -510,8 +509,8 @@ namespace BrumeServer
                 {
                     using (Message Message = Message.Create(Tags.QuitGame, QuitGameWriter))
                     {
-                        foreach (IClient client in ClientManager.GetAllClients().Where(x => _room.Players.Contains(players[x])))
-                            client.SendMessage(Message, SendMode.Reliable);
+                        foreach (KeyValuePair<IClient, PlayerData> client in  _room.Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
                     }
                 }
 
@@ -545,8 +544,8 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.SetCharacter, Writer))
                 {
-                    foreach (IClient client in ClientManager.GetAllClients().Where(x => rooms[players[e.Client].RoomID].Players.Contains(players[x])))
-                        client.SendMessage(Message, SendMode.Reliable);
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
         }

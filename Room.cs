@@ -16,15 +16,15 @@ namespace BrumeServer
         public int PlayersCount { get; set; }
         public PlayerData Host { get; set; }
 
-        public List<PlayerData> Players = new List<PlayerData>();
+        public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
 
-        public Room(ushort ID, string name, PlayerData host, int maxPlayers = 12)
+        public Room(ushort ID, string name, PlayerData host, IClient hostClient, int maxPlayers = 12)
         {
             this.ID = ID;
             this.Name = name;
             this.Host = host;
             this.MaxPlayers = maxPlayers;
-            Players.Add(host);
+            Players.Add(hostClient, host);
         }
 
         public Room()
@@ -49,9 +49,9 @@ namespace BrumeServer
         {
             int _count = 0;
 
-            foreach (PlayerData player in Players)
+            foreach (KeyValuePair<IClient, PlayerData> player in Players)
             {
-                if (player.playerTeam == team)
+                if (player.Value.playerTeam == team)
                 {
                     _count++;
                 }
@@ -82,8 +82,12 @@ namespace BrumeServer
             {
                 using (Message Message = Message.Create(Tags.StartGame, Writer))
                 {
-                    foreach (IClient client in Players)
-                        client.SendMessage(Message, SendMode.Reliable);
+
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    {
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+
                 }
             }
         }
