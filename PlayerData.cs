@@ -2,36 +2,38 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BrumeServer.GameData;
 
 namespace BrumeServer
 {
-    public class RoomPlayer : IDarkRiftSerializable
+    public class PlayerData : IDarkRiftSerializable
     {
         public ushort ID { get; set; }
         public bool IsHost { get; set; }
         public string Name { get; set; }
-        public byte ColorR { get; set; }
-        public byte ColorG { get; set; }
-        public byte ColorB { get; set; }
+        public ushort RoomID { get; set; }
 
-        public RoomPlayer(ushort ID, bool isHost, string name, byte colorR, byte colorG, byte colorB)
+        public bool IsReady { get; set; }
+
+        public Team playerTeam = Team.none;
+
+        public Character playerCharacter = Character.none;
+
+        public PlayerData(ushort ID, bool isHost, string name, Team team = Team.none)
         {
             this.ID = ID;
             this.IsHost = isHost;
             this.Name = name;
-            this.ColorR = colorR;
-            this.ColorG = colorG;
-            this.ColorB = colorB;
+            this.playerTeam = team;
         }
-
         public void Deserialize(DeserializeEvent e)
         {
             this.ID = e.Reader.ReadUInt16();
             this.IsHost = e.Reader.ReadBoolean();
             this.Name = e.Reader.ReadString();
-            this.ColorR = e.Reader.ReadByte();
-            this.ColorG = e.Reader.ReadByte();
-            this.ColorB = e.Reader.ReadByte();
+            this.IsReady = e.Reader.ReadBoolean();
+            this.playerTeam = (Team)e.Reader.ReadUInt16();
+            this.playerCharacter = (Character)e.Reader.ReadUInt16();
         }
 
         public void Serialize(SerializeEvent e)
@@ -39,9 +41,9 @@ namespace BrumeServer
             e.Writer.Write(ID);
             e.Writer.Write(IsHost);
             e.Writer.Write(Name);
-            e.Writer.Write(ColorR);
-            e.Writer.Write(ColorG);
-            e.Writer.Write(ColorB);
+            e.Writer.Write(IsReady);
+            e.Writer.Write((ushort)playerTeam);
+            e.Writer.Write((ushort)playerCharacter);
         }
 
     }
