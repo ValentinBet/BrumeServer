@@ -13,6 +13,7 @@ namespace BrumeServer
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             ClientManager.ClientConnected += ClientConnected;
+            ClientManager.ClientDisconnected += OnClientDisonnected;
         }
 
         public override bool ThreadSafe => false;
@@ -26,6 +27,7 @@ namespace BrumeServer
 
         private void ClientConnected(object sender, ClientConnectedEventArgs e)
         {
+            /*
             Random r = new Random();
             RoomPlayer newPlayer = new RoomPlayer(
                 e.Client.ID,
@@ -38,6 +40,37 @@ namespace BrumeServer
             players.Add(e.Client, newPlayer);
 
             e.Client.MessageReceived += MessageReceivedFromClient;
+            */
+
+            SamPlayers.Add(e.Client);
+
+            SpawnObjPlayer(sender, e);
+
+            e.Client.MessageReceived += MessageReceivedFromClient;
+        }
+        
+        private void OnClientDisonnected(object sender, ClientDisconnectedEventArgs e)
+        {
+            PlayerDisconnected(sender, e);
+            SamPlayers.Remove(e.Client);
+        }
+
+        void PlayerDisconnected(object sender, ClientDisconnectedEventArgs e)
+        {
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                ushort ID = e.Client.ID;
+
+                GameWriter.Write(ID);
+
+                using (Message Message = Message.Create(Tags.SupprObjPlayer, GameWriter))
+                {
+                    foreach (IClient client in SamPlayers.Where(x => x != e.Client))
+                    {
+                        client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
         }
 
         private void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)
@@ -48,13 +81,24 @@ namespace BrumeServer
                 {
                     CreateRoom(sender, e);
                 }
-                else if (message.Tag == Tags.JoinRoom)
+                
+                if (message.Tag == Tags.JoinRoom)
                 {
                     JoinRoom(sender, e);
                 }
 
+                if (message.Tag == Tags.MovePlayerTag)
+                {
+                    SendMovement(sender, e);
+                }
+
+                if (message.Tag == Tags.SendAnim)
+                {
+                    SendAnim(sender, e);
+                }
             }
         }
+
         private void CreateRoom(object sender, MessageReceivedEventArgs e)
         {
             string name = "";
@@ -170,5 +214,98 @@ namespace BrumeServer
 
         }
 
+        List<IClient> SamPlayers = new List<IClient>();
+        private void SpawnObjPlayer(object sender, ClientConnectedEventArgs e)
+        {
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                ushort ID = e.Client.ID;
+
+                GameWriter.Write(ID);
+
+                using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
+                {
+                    foreach (IClient client in SamPlayers)
+                    {
+                        client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                foreach (IClient client in SamPlayers.Where(x => x != e.Client))
+                {
+                    ushort ID = client.ID;
+                    GameWriter.Write(ID);
+
+                    using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
+                    {
+                        e.Client.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+        private void SendMovement(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                if (message.Tag == Tags.MovePlayerTag)
+                {
+                    using (DarkRiftReader reader = message.GetReader())
+                    {
+                        float newX = reader.ReadSingle();
+                        float newZ = reader.ReadSingle();
+
+                        float rotaX = reader.ReadSingle();
+                        float rotaY = reader.ReadSingle();
+                        float rotaZ = reader.ReadSingle();
+
+                        using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                        {
+                            writer.Write(e.Client.ID);
+
+                            writer.Write(newX);
+                            writer.Write(newZ);
+
+                            writer.Write(rotaX);
+                            writer.Write(rotaY);
+                            writer.Write(rotaZ);
+
+                            message.Serialize(writer);
+                        }
+
+                        foreach (IClient c in ClientManager.GetAllClients().Where(x => x != e.Client))
+                            c.SendMessage(message, e.SendMode);
+                    }
+                }
+            }
+        }
+
+        private void SendAnim(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    float foward = reader.ReadSingle();
+                    float right = reader.ReadSingle();
+
+                    using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                    {
+                        writer.Write(e.Client.ID);
+
+                        writer.Write(foward);
+                        writer.Write(right);
+
+                        message.Serialize(writer);
+                    }
+
+                    foreach (IClient c in ClientManager.GetAllClients().Where(x => x != e.Client))
+                        c.SendMessage(message, e.SendMode);
+                }
+            }
+        }
     }
 }
