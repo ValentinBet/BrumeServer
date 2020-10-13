@@ -75,6 +75,11 @@ namespace BrumeServer
             e.Writer.Write(MaxPlayers);
         }
 
+        public PlayerData FindPlayerByID(ushort ID)
+        {
+            return Players.Single(x => x.Key.ID == ID).Value;
+        }
+
 
         public void StartGame()
         {
@@ -173,5 +178,36 @@ namespace BrumeServer
                 }
             }
         }
+
+        public void StartTimer()
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.StartTimer, Writer))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+
+                }
+            }
+        }
+
+
+        public void StopGame()
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.StopGame, Writer))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
     }
 }

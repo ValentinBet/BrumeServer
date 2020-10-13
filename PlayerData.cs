@@ -12,9 +12,8 @@ namespace BrumeServer
         public bool IsHost { get; set; }
         public string Name { get; set; }
         public ushort RoomID { get; set; }
-
         public bool IsReady { get; set; }
-
+            public ushort score { get; set; }
         public Team playerTeam = Team.none;
 
         public Character playerCharacter = Character.none;

@@ -6,25 +6,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static BrumeServer.GameData;
+using System.Runtime.CompilerServices;
+using System.ComponentModel.Design;
 
 namespace BrumeServer
 {
     public class BrumeServer : Plugin
     {
-        #pragma warning disable CS0618 // Type or member is obsolete (WRITE EVENT)
-        public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
-        {
-            ClientManager.ClientConnected += OnClientConnected;
-            ClientManager.ClientDisconnected += OnClientDisconnected;
-        }
+#pragma warning disable CS0618 // Type or member is obsolete (WRITE EVENT)
+
         public override bool ThreadSafe => false;
         public override Version Version => new Version(1, 0, 0);
 
 
-        Dictionary<IClient, PlayerData> players = new Dictionary<IClient, PlayerData>();
-        Dictionary<ushort, Room> rooms = new Dictionary<ushort, Room>();
+        public Dictionary<IClient, PlayerData> players = new Dictionary<IClient, PlayerData>();
+        public Dictionary<ushort, Room> rooms = new Dictionary<ushort, Room>();
 
         private ushort lastRoomID = 0;
+        private NetworkObjectsManager networkObjectsManager = new NetworkObjectsManager();
+
+
+        public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
+        {
+            ClientManager.ClientConnected += OnClientConnected;
+            ClientManager.ClientDisconnected += OnClientDisconnected;
+
+            networkObjectsManager.brumeServer = this;
+        }
+
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
 
         #region Server<-->Client
         private void OnClientConnected(object sender, ClientConnectedEventArgs e)
@@ -52,6 +66,7 @@ namespace BrumeServer
 
             SendAllRooms(sender, e);
 
+            e.Client.MessageReceived += networkObjectsManager.MessageReceivedFromClient;
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
 
@@ -123,6 +138,18 @@ namespace BrumeServer
                 else if (message.Tag == Tags.SendAnim)
                 {
                     SendAnim(sender, e);
+                }
+                else if (message.Tag == Tags.StartTimer)
+                {
+                    StartTimer(sender, e);
+                }
+                else if (message.Tag == Tags.StopGame)
+                {
+                    StopGame(sender, e);
+                }
+                else if (message.Tag == Tags.AddPoints)
+                {
+                    AddPoints(sender, e);
                 }
             }
         }
@@ -209,6 +236,40 @@ namespace BrumeServer
                 TeamWriter.Write(value);
 
                 using (Message Message = Message.Create(Tags.SetReady, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        private void AddPoints(object sender, MessageReceivedEventArgs e)
+        {
+            ushort value;
+            ushort targetID;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    value = reader.ReadUInt16();
+                    targetID = reader.ReadUInt16();
+                }
+            }
+
+            Room room = rooms[players[e.Client].RoomID];
+            PlayerData PlayerTarget = room.FindPlayerByID(targetID);
+
+            PlayerTarget.score += value;
+
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                TeamWriter.Write(PlayerTarget.ID);
+                TeamWriter.Write(PlayerTarget.score);
+
+                using (Message Message = Message.Create(Tags.AddPoints, TeamWriter))
                 {
                     foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
                         client.Key.SendMessage(Message, SendMode.Reliable);
@@ -538,21 +599,21 @@ namespace BrumeServer
             }
         }
 
-        private void SpawnPlayers(Room room)
+        private void StartGame(object sender, MessageReceivedEventArgs e)
         {
+            ushort _roomID;
 
-            /////////////////////////////////////////////////
-            //////////////// FAIRE SPAWN LES JOUEURS
-            /////////////////////////////////////////////////
-
-            using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
+            using (Message message = e.GetMessage() as Message)
             {
-                using (Message Message = Message.Create(Tags.SpawnObjPlayer, StartGameWriter))
+                using (DarkRiftReader reader = message.GetReader())
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in room.Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    _roomID = reader.ReadUInt16();
                 }
             }
+
+            rooms[_roomID].StartGame();
+
+
         }
 
         private void QuitGame(object sender, MessageReceivedEventArgs e)
@@ -577,11 +638,35 @@ namespace BrumeServer
                     }
                 }
 
+
                 /////////////////////////////////////////////////
                 //////////////// Rajouter le retour OU suppression de la room ETC
                 /////////////////////////////////////////////////
             }
         }
+        private void StartTimer(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _roomId = reader.ReadUInt16();
+                    rooms[_roomId].StartTimer();
+                }
+            }
+        }
+        private void StopGame(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _roomId = reader.ReadUInt16();
+                    rooms[_roomId].StopGame();
+                }
+            }
+        }
+
         #endregion
 
         #region ChampSelect
@@ -613,22 +698,10 @@ namespace BrumeServer
             }
         }
 
-        private void StartGame(object sender, MessageReceivedEventArgs e)
-        {
-            ushort _roomID;
 
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    _roomID = reader.ReadUInt16();
-                }
-            }
-
-            rooms[_roomID].StartGame();
-
-        }
 
         #endregion
+
+
     }
 }
