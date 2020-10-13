@@ -114,7 +114,6 @@ namespace BrumeServer
                 }
                 else if (message.Tag == Tags.SpawnObjPlayer)
                 {
-                    Console.WriteLine("spawn");
                     SpawnObjPlayer(sender, e);
                 }
                 else if (message.Tag == Tags.MovePlayerTag)
@@ -471,7 +470,6 @@ namespace BrumeServer
                     _roomId = reader.ReadUInt16();
                 }
 
-                Console.WriteLine(_roomId);
                 rooms[_roomId].SpawnObjPlayer(sender, e);
             }
         }
@@ -485,8 +483,14 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     _roomId = reader.ReadUInt16();
+
+                    float newX = reader.ReadSingle();
+                    float newZ = reader.ReadSingle();
+
+                    float rotaY = reader.ReadSingle();
+
+                    rooms[_roomId].SendMovement(sender, e, newX, newZ, rotaY);
                 }
-                rooms[_roomId].SendMovement(sender, e);
             }
         }
 
@@ -499,8 +503,11 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     _roomId = reader.ReadUInt16();
+                    float foward = reader.ReadSingle();
+                    float right = reader.ReadSingle();
+
+                    rooms[_roomId].SendAnim(sender, e, foward, right);
                 }
-                rooms[_roomId].SendAnim(sender, e);
             }
         }
 

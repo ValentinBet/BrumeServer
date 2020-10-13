@@ -109,7 +109,7 @@ namespace BrumeServer
                 }
             }
 
-            //SpawnOldPlayers
+            //Spawn Old Players
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
                 foreach (KeyValuePair<IClient, PlayerData> client in Players)
@@ -127,69 +127,49 @@ namespace BrumeServer
             }
         }
 
-        public void SendMovement(object sender, MessageReceivedEventArgs e)
-        {
-            using (Message message = e.GetMessage() as Message)
-            {
-                if (message.Tag == Tags.MovePlayerTag)
-                {
-                    using (DarkRiftReader reader = message.GetReader())
-                    {
-                        float newX = reader.ReadSingle();
-                        float newZ = reader.ReadSingle();
-
-                        float rotaX = reader.ReadSingle();
-                        float rotaY = reader.ReadSingle();
-                        float rotaZ = reader.ReadSingle();
-
-                        using (DarkRiftWriter writer = DarkRiftWriter.Create())
-                        {
-                            writer.Write(e.Client.ID);
-
-                            writer.Write(newX);
-                            writer.Write(newZ);
-
-                            writer.Write(rotaX);
-                            writer.Write(rotaY);
-                            writer.Write(rotaZ);
-
-                            message.Serialize(writer);
-                        }
-
-                        foreach (KeyValuePair<IClient, PlayerData> client in Players)
-                        {
-                            if(e.Client == client.Key) { continue; }
-                            client.Key.SendMessage(message, e.SendMode);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void SendAnim(object sender, MessageReceivedEventArgs e)
+        public void SendMovement(object sender, MessageReceivedEventArgs e, float posX, float posZ, float rotaY)
         {
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
+
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
                 {
-                    float foward = reader.ReadSingle();
-                    float right = reader.ReadSingle();
+                    writer.Write(e.Client.ID);
 
-                    using (DarkRiftWriter writer = DarkRiftWriter.Create())
-                    {
-                        writer.Write(e.Client.ID);
+                    writer.Write(posX);
+                    writer.Write(posZ);
 
-                        writer.Write(foward);
-                        writer.Write(right);
+                    writer.Write(rotaY);
 
-                        message.Serialize(writer);
-                    }
+                    message.Serialize(writer);
+                }
 
-                    foreach (KeyValuePair<IClient, PlayerData> c in Players)
-                    {
-                        if (e.Client == c.Key) { continue; }
-                        c.Key.SendMessage(message, e.SendMode);
-                    }
+                foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+                    client.Key.SendMessage(message, e.SendMode);
+                }
+            }
+        }
+        public void SendAnim(object sender, MessageReceivedEventArgs e, float foward, float right)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(e.Client.ID);
+
+                    writer.Write(foward);
+                    writer.Write(right);
+
+                    message.Serialize(writer);
+                }
+
+                foreach (KeyValuePair<IClient, PlayerData> c in Players)
+                {
+                    if (e.Client == c.Key) { continue; }
+                    c.Key.SendMessage(message, e.SendMode);
                 }
             }
         }
