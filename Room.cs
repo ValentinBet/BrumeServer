@@ -209,5 +209,23 @@ namespace BrumeServer
             }
         }
 
+
+        public void Addpoints(ushort targetTeam, ushort value)
+        {         
+
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                TeamWriter.Write(targetTeam);
+                TeamWriter.Write(value);
+
+                using (Message Message = Message.Create(Tags.AddPoints, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
     }
 }

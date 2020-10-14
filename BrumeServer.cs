@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using static BrumeServer.GameData;
 using System.Runtime.CompilerServices;
 using System.ComponentModel.Design;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace BrumeServer
 {
@@ -189,7 +191,6 @@ namespace BrumeServer
                     ushort _targetID = reader.ReadUInt16();
                     ushort _damages = reader.ReadUInt16();
 
-
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(_targetID);
@@ -198,7 +199,14 @@ namespace BrumeServer
                         using (Message Message = Message.Create(Tags.Damages, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
-                                client.Key.SendMessage(Message, SendMode.Reliable);
+                            {
+                                if (client.Key != e.Client)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+
+                            }
+
                         }
                     }
 
@@ -298,35 +306,17 @@ namespace BrumeServer
         private void AddPoints(object sender, MessageReceivedEventArgs e)
         {
             ushort value;
-            ushort targetID;
+            ushort targetTeam;
 
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
+                    targetTeam = reader.ReadUInt16();
                     value = reader.ReadUInt16();
-                    targetID = reader.ReadUInt16();
                 }
             }
-
-            Room room = rooms[players[e.Client].RoomID];
-            PlayerData PlayerTarget = room.FindPlayerByID(targetID);
-
-            PlayerTarget.score += value;
-
-            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
-            {
-                // Recu par les joueurs déja présent dans la room
-
-                TeamWriter.Write(PlayerTarget.ID);
-                TeamWriter.Write(PlayerTarget.score);
-
-                using (Message Message = Message.Create(Tags.AddPoints, TeamWriter))
-                {
-                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
-                }
-            }
+            rooms[players[e.Client].RoomID].Addpoints(targetTeam, value);
         }
 
         #endregion
