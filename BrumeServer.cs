@@ -151,11 +151,63 @@ namespace BrumeServer
                 {
                     AddPoints(sender, e);
                 }
+                else if (message.Tag == Tags.Damages)
+                {
+                    TakeDamages(sender, e);
+                }
+                else if (message.Tag == Tags.KillCharacter)
+                {
+                    KillCharacter(sender, e);
+                }
             }
         }
         #endregion
 
         #region Player
+
+        private void KillCharacter(object sender, MessageReceivedEventArgs e)
+        {
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                {
+                    Writer.Write(e.Client.ID);
+
+                    using (Message Message = Message.Create(Tags.KillCharacter, Writer))
+                    {
+                        foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+        }
+
+
+        private void TakeDamages(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _targetID = reader.ReadUInt16();
+                    ushort _damages = reader.ReadUInt16();
+
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_targetID);
+                        Writer.Write(_damages);
+
+                        using (Message Message = Message.Create(Tags.Damages, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                                client.Key.SendMessage(Message, SendMode.Reliable);
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+
         private void ChangeName(object sender, MessageReceivedEventArgs e)
         {
             string _name = "";
