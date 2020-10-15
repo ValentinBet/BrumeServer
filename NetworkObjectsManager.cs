@@ -37,9 +37,36 @@ namespace BrumeServer
                 {
                     SynchroniseObject(sender, e);
                 }
+                else if (message.Tag == Tags.DestroyObject)
+                {
+                    DestroyObject(sender, e);
+                }
 
             }
         }
+
+        private void DestroyObject(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _objID = reader.ReadUInt16();
+
+                    using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                    {
+                        writer.Write(_objID);
+
+                        using (Message MessageW = Message.Create(Tags.DestroyObject, writer))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                                client.Key.SendMessage(MessageW, SendMode.Reliable);
+                        }
+                    }
+                }
+            }
+        }
+
         private void InstantiateObject(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)

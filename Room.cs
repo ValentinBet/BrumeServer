@@ -132,6 +132,23 @@ namespace BrumeServer
             }
         }
 
+        public void SupprPlayer(ushort ID)
+        {
+            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            {
+                GameWriter.Write(ID);
+
+                using (Message Message = Message.Create(Tags.SupprObjPlayer, GameWriter))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+
         public void SendMovement(object sender, MessageReceivedEventArgs e, float posX, float posZ, float rotaY)
         {
             using (Message message = e.GetMessage() as Message)
@@ -211,8 +228,7 @@ namespace BrumeServer
 
 
         public void Addpoints(ushort targetTeam, ushort value)
-        {         
-
+        {
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room
@@ -221,6 +237,23 @@ namespace BrumeServer
                 TeamWriter.Write(value);
 
                 using (Message Message = Message.Create(Tags.AddPoints, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        public void SyncTrigger(ushort _id, string trigger)
+        {
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                TeamWriter.Write(_id);
+                TeamWriter.Write(trigger);
+
+                using (Message Message = Message.Create(Tags.SyncTrigger, TeamWriter))
                 {
                     foreach (KeyValuePair<IClient, PlayerData> client in Players)
                         client.Key.SendMessage(Message, SendMode.Reliable);

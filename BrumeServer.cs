@@ -78,7 +78,9 @@ namespace BrumeServer
 
             if (_roomPlayer.RoomID != 0)
             {
+                rooms[_roomPlayer.RoomID].SupprPlayer(e.Client.ID);
                 QuitRoom(e.Client, rooms[_roomPlayer.RoomID]);
+                
             }
 
             players.Remove(e.Client);
@@ -160,6 +162,10 @@ namespace BrumeServer
                 else if (message.Tag == Tags.KillCharacter)
                 {
                     KillCharacter(sender, e);
+                }
+                else if (message.Tag == Tags.SyncTrigger)
+                {
+                    SyncTrigger(sender, e);
                 }
             }
         }
@@ -317,6 +323,22 @@ namespace BrumeServer
                 }
             }
             rooms[players[e.Client].RoomID].Addpoints(targetTeam, value);
+        }        
+
+        private void SyncTrigger(object sender, MessageReceivedEventArgs e)
+        {
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                   ushort _id = reader.ReadUInt16();
+                   string trigger = reader.ReadString();
+
+                    rooms[players[e.Client].RoomID].SyncTrigger(_id, trigger);
+                }
+            }
+
         }
 
         #endregion
