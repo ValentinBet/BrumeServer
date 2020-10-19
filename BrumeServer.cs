@@ -25,15 +25,18 @@ namespace BrumeServer
         public Dictionary<ushort, Room> rooms = new Dictionary<ushort, Room>();
 
         private ushort lastRoomID = 0;
+        private NetworkAnimationManager networkAnimationManager = new NetworkAnimationManager();
         private NetworkObjectsManager networkObjectsManager = new NetworkObjectsManager();
+
 
 
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
+            networkAnimationManager.brumeServer = this;
+            networkObjectsManager.brumeServer = this;
+
             ClientManager.ClientConnected += OnClientConnected;
             ClientManager.ClientDisconnected += OnClientDisconnected;
-
-            networkObjectsManager.brumeServer = this;
         }
 
 
@@ -55,9 +58,6 @@ namespace BrumeServer
 
             using (DarkRiftWriter NewPlayerWriter = DarkRiftWriter.Create())
             {
-
-                // Recu par le créateur de la room
-
                 NewPlayerWriter.Write(newPlayer);
 
                 using (Message Message = Message.Create(Tags.PlayerConnected, NewPlayerWriter))
@@ -68,6 +68,7 @@ namespace BrumeServer
 
             SendAllRooms(sender, e);
 
+            e.Client.MessageReceived += networkAnimationManager.MessageReceivedFromClient;
             e.Client.MessageReceived += networkObjectsManager.MessageReceivedFromClient;
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
@@ -78,12 +79,15 @@ namespace BrumeServer
 
             if (_roomPlayer.RoomID != 0)
             {
-                rooms[_roomPlayer.RoomID].SupprPlayer(e.Client.ID);
                 QuitRoom(e.Client, rooms[_roomPlayer.RoomID]);
-                
+
             }
 
             players.Remove(e.Client);
+
+            e.Client.MessageReceived -= networkAnimationManager.MessageReceivedFromClient;
+            e.Client.MessageReceived -= networkObjectsManager.MessageReceivedFromClient;
+            e.Client.MessageReceived -= MessageReceivedFromClient;
         }
 
 
@@ -139,10 +143,7 @@ namespace BrumeServer
                 {
                     SendPlayerMovement(sender, e);
                 }
-                else if (message.Tag == Tags.SendAnim)
-                {
-                    SendAnim(sender, e);
-                }
+
                 else if (message.Tag == Tags.StartTimer)
                 {
                     StartTimer(sender, e);
@@ -163,10 +164,7 @@ namespace BrumeServer
                 {
                     KillCharacter(sender, e);
                 }
-                else if (message.Tag == Tags.SyncTrigger)
-                {
-                    SyncTrigger(sender, e);
-                }
+
             }
         }
         #endregion
@@ -175,16 +173,16 @@ namespace BrumeServer
 
         private void KillCharacter(object sender, MessageReceivedEventArgs e)
         {
-                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                {
-                    Writer.Write(e.Client.ID);
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(e.Client.ID);
 
-                    using (Message Message = Message.Create(Tags.KillCharacter, Writer))
-                    {
-                        foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
-                            client.Key.SendMessage(Message, SendMode.Reliable);
-                    }
+                using (Message Message = Message.Create(Tags.KillCharacter, Writer))
+                {
+                    foreach (KeyValuePair<IClient, PlayerData> client in rooms[players[e.Client].RoomID].Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                 }
+            }
         }
 
 
@@ -210,15 +208,11 @@ namespace BrumeServer
                                 {
                                     client.Key.SendMessage(Message, SendMode.Reliable);
                                 }
-
                             }
-
                         }
                     }
-
                 }
             }
-
         }
 
 
@@ -323,23 +317,8 @@ namespace BrumeServer
                 }
             }
             rooms[players[e.Client].RoomID].Addpoints(targetTeam, value);
-        }        
-
-        private void SyncTrigger(object sender, MessageReceivedEventArgs e)
-        {
-
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                   ushort _id = reader.ReadUInt16();
-                   string trigger = reader.ReadString();
-
-                    rooms[players[e.Client].RoomID].SyncTrigger(_id, trigger);
-                }
-            }
-
         }
+
 
         #endregion
 
@@ -496,9 +475,9 @@ namespace BrumeServer
 
             QuitRoom(e.Client, _room);
         }
+
         private void QuitRoom(IClient Eclient, Room room)
         {
-
             using (DarkRiftWriter QuitWriter = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room
@@ -512,9 +491,11 @@ namespace BrumeServer
                 }
             }
 
-            rooms[room.ID].Players.Remove(Eclient);
+
+            room.Players.Remove(Eclient);
             players[Eclient].RoomID = 0;
             players[Eclient].playerTeam = Team.none;
+            room.SupprPlayerObj(Eclient.ID);
 
             if (players[Eclient].IsHost)
             {
@@ -615,23 +596,6 @@ namespace BrumeServer
                     float rotaY = reader.ReadSingle();
 
                     rooms[_roomId].SendMovement(sender, e, newX, newZ, rotaY);
-                }
-            }
-        }
-
-        private void SendAnim(object sender, MessageReceivedEventArgs e)
-        {
-            ushort _roomId;
-
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    _roomId = reader.ReadUInt16();
-                    float foward = reader.ReadSingle();
-                    float right = reader.ReadSingle();
-
-                    rooms[_roomId].SendAnim(sender, e, foward, right);
                 }
             }
         }

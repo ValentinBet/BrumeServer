@@ -18,7 +18,7 @@ namespace BrumeServer
 
         public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
 
-        public Room(ushort ID, string name, PlayerData host, IClient hostClient, int maxPlayers = 12)
+        public Room( ushort ID, string name, PlayerData host, IClient hostClient, int maxPlayers = 12)
         {
             this.ID = ID;
             this.Name = name;
@@ -29,7 +29,6 @@ namespace BrumeServer
 
         public Room()
         {
-
         }
 
         public Team GetTeamWithLowestPlayerAmount()
@@ -79,6 +78,14 @@ namespace BrumeServer
         {
             return Players.Single(x => x.Key.ID == ID).Value;
         }
+
+
+        internal void QuitRoom()
+        {
+            
+        }
+
+
 
 
         public void StartGame()
@@ -132,7 +139,7 @@ namespace BrumeServer
             }
         }
 
-        public void SupprPlayer(ushort ID)
+        public void SupprPlayerObj(ushort ID)
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
@@ -260,5 +267,6 @@ namespace BrumeServer
                 }
             }
         }
+
     }
 }

@@ -75,7 +75,6 @@ namespace BrumeServer
                 {
                     ushort _ownerID = reader.ReadUInt16();
                     ushort _objectID = reader.ReadUInt16();
-                    ushort _roomID = reader.ReadUInt16();
 
                     float _ObjectPosx = reader.ReadSingle();
                     float _ObjectPosy = reader.ReadSingle();
@@ -101,10 +100,10 @@ namespace BrumeServer
 
                         LastNetworkedObjectID += 1; // UNIQUE ID
                         writer.Write(LastNetworkedObjectID);
-
+                        message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[_roomID].Players)
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
                                 client.Key.SendMessage(MessageW, SendMode.Reliable);
                         }
                     }
@@ -123,7 +122,6 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     ushort _serverID = reader.ReadUInt16();
-                    ushort _roomID = reader.ReadUInt16();
 
                     float _ObjectPosx = reader.ReadSingle();
                     float _ObjectPosy = reader.ReadSingle();
@@ -154,10 +152,10 @@ namespace BrumeServer
                             writer.Write(_ObjectRotationy);
                             writer.Write(_ObjectRotationz);
                         }
-
+                        message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.SynchroniseObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[_roomID].Players)
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(MessageW, SendMode.Unreliable);
                         }
                     }

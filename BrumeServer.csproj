@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
+    <Compile Include="NetworkAnimationManager.cs" />
     <Compile Include="NetworkObjectsManager.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
