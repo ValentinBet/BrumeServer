@@ -12,13 +12,12 @@ namespace BrumeServer
     {
         public ushort ID { get; set; }
         public string Name { get; set; }
-        public int MaxPlayers { get; set; }
-        public int PlayersCount { get; set; }
+        public ushort MaxPlayers { get; set; }
         public PlayerData Host { get; set; }
 
         public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
 
-        public Room( ushort ID, string name, PlayerData host, IClient hostClient, int maxPlayers = 12)
+        public Room( ushort ID, string name, PlayerData host, IClient hostClient, ushort maxPlayers = 12)
         {
             this.ID = ID;
             this.Name = name;
@@ -64,7 +63,7 @@ namespace BrumeServer
         {
             this.ID = e.Reader.ReadUInt16();
             this.Name = e.Reader.ReadString();
-            this.MaxPlayers = e.Reader.ReadInt32();
+            this.MaxPlayers = e.Reader.ReadUInt16();
         }
 
         public void Serialize(SerializeEvent e)
@@ -72,6 +71,7 @@ namespace BrumeServer
             e.Writer.Write(ID);
             e.Writer.Write(Name);
             e.Writer.Write(MaxPlayers);
+            e.Writer.Write((ushort)Players.Count); // LocalOnly
         }
 
         public PlayerData FindPlayerByID(ushort ID)
@@ -84,8 +84,6 @@ namespace BrumeServer
         {
             
         }
-
-
 
 
         public void StartGame()
@@ -251,22 +249,6 @@ namespace BrumeServer
             }
         }
 
-        public void SyncTrigger(ushort _id, string trigger)
-        {
-            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
-            {
-                // Recu par les joueurs déja présent dans la room
-
-                TeamWriter.Write(_id);
-                TeamWriter.Write(trigger);
-
-                using (Message Message = Message.Create(Tags.SyncTrigger, TeamWriter))
-                {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
-                }
-            }
-        }
 
     }
 }

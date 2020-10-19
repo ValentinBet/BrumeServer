@@ -31,10 +31,18 @@ namespace BrumeServer
                 {
                     SyncTrigger(sender, e);
                 }
-                else if (message.Tag == Tags.SendAnim)
+                else if (message.Tag == Tags.Sync2DBlendTree)
                 {
-                    SendAnim(sender, e);
+                    Sync2DBlendTree(sender, e);
+                }                
+                else if (message.Tag == Tags.Sync2DBlendTree)
+                {
+                    SyncBoolean(sender, e);
                 }
+                //else if (message.Tag == Tags.SendAnim)
+                //{
+                //    SendAnim(sender, e);
+                //}
             }
         }
 
@@ -47,29 +55,104 @@ namespace BrumeServer
                     ushort _id = reader.ReadUInt16();
                     string trigger = reader.ReadString();
 
-                    brumeServer.rooms[brumeServer.players[e.Client].RoomID].SyncTrigger(_id, trigger);
+                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                        TeamWriter.Write(_id);
+                        TeamWriter.Write(trigger);
+
+                        using (Message Message = Message.Create(Tags.SyncTrigger, TeamWriter))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
                 }
             }
 
         }
 
 
-        private void SendAnim(object sender, MessageReceivedEventArgs e)
-        {
-            ushort _roomId;
 
+        private void Sync2DBlendTree(object sender, MessageReceivedEventArgs e)
+        {
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    _roomId = reader.ReadUInt16();
-                    float foward = reader.ReadSingle();
-                    float right = reader.ReadSingle();
+                    ushort _id = reader.ReadUInt16();
+                    string XvalueName = reader.ReadString();
+                    string YvalueName = reader.ReadString();
+                    byte Xvalue = reader.ReadByte();
+                    byte Yvalue = reader.ReadByte();
 
-                    brumeServer.rooms[_roomId].SendAnim(sender, e, foward, right);
+                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                        TeamWriter.Write(_id);
+                        TeamWriter.Write(XvalueName);
+                        TeamWriter.Write(YvalueName);
+                        TeamWriter.Write(Xvalue);
+                        TeamWriter.Write(Yvalue);
+
+                        using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
                 }
             }
+
         }
+
+        private void SyncBoolean(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _id = reader.ReadUInt16();
+                    string boolean = reader.ReadString();
+                    bool value = reader.ReadBoolean();
+
+                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                        TeamWriter.Write(_id);
+                        TeamWriter.Write(boolean);
+                        TeamWriter.Write(value);
+
+                        using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        //private void SendAnim(object sender, MessageReceivedEventArgs e)
+        //{
+        //    ushort _roomId;
+
+        //    using (Message message = e.GetMessage() as Message)
+        //    {
+        //        using (DarkRiftReader reader = message.GetReader())
+        //        {
+        //            _roomId = reader.ReadUInt16();
+        //            float foward = reader.ReadSingle();
+        //            float right = reader.ReadSingle();
+
+        //            brumeServer.rooms[_roomId].SendAnim(sender, e, foward, right);
+        //        }
+        //    }
+        //}
 
 
     }

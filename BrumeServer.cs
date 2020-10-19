@@ -332,7 +332,6 @@ namespace BrumeServer
 
                 foreach (KeyValuePair<ushort, Room> r in rooms)
                 {
-                    r.Value.PlayersCount = r.Value.Players.Count();
                     SendAllRoomsWriter.Write(r.Value);
                 }
 

@@ -36,8 +36,14 @@ namespace BrumeServer
         public static readonly ushort DestroyObject = 515;
         public static readonly ushort Damages = 520;
         public static readonly ushort AddPoints = 550;
-        public static readonly ushort SyncTrigger = 750;
-        public static readonly ushort KillCharacter = 560;
+         public static readonly ushort KillCharacter = 560;
+
+            //Anim >>
+            public static readonly ushort SyncTrigger = 750;
+            public static readonly ushort Sync2DBlendTree = 752;
+            public static readonly ushort SyncBoolean = 754;
+            // <<
+
         public static readonly ushort SpawnObjPlayer = 1000;
         public static readonly ushort MovePlayerTag = 1010;
         public static readonly ushort SupprObjPlayer = 1020;
