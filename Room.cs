@@ -17,6 +17,7 @@ namespace BrumeServer
 
         public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
 
+
         public Room( ushort ID, string name, PlayerData host, IClient hostClient, ushort maxPlayers = 12)
         {
             this.ID = ID;
@@ -179,27 +180,6 @@ namespace BrumeServer
                 }
             }
         }
-        public void SendAnim(object sender, MessageReceivedEventArgs e, float foward, float right)
-        {
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftWriter writer = DarkRiftWriter.Create())
-                {
-                    writer.Write(e.Client.ID);
-
-                    writer.Write(foward);
-                    writer.Write(right);
-
-                    message.Serialize(writer);
-                }
-
-                foreach (KeyValuePair<IClient, PlayerData> c in Players)
-                {
-                    if (e.Client == c.Key) { continue; }
-                    c.Key.SendMessage(message, e.SendMode);
-                }
-            }
-        }
 
         public void StartTimer()
         {
@@ -249,6 +229,18 @@ namespace BrumeServer
             }
         }
 
+        internal bool IsAllPlayersReady()
+        {
 
+            foreach (PlayerData p in Players.Values)
+            {
+                if (!p.IsReady)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

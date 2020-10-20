@@ -42,12 +42,12 @@ namespace BrumeServer
             public static readonly ushort SyncTrigger = 750;
             public static readonly ushort Sync2DBlendTree = 752;
             public static readonly ushort SyncBoolean = 754;
+            public static readonly ushort SyncFloat = 756;
             // <<
 
         public static readonly ushort SpawnObjPlayer = 1000;
         public static readonly ushort MovePlayerTag = 1010;
         public static readonly ushort SupprObjPlayer = 1020;
-        public static readonly ushort SendAnim = 1030;
         // <<
     }
 }

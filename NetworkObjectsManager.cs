@@ -84,7 +84,6 @@ namespace BrumeServer
                     float _ObjectRotationy = reader.ReadSingle();
                     float _ObjectRotationz = reader.ReadSingle();
 
-
                     using (DarkRiftWriter writer = DarkRiftWriter.Create())
                     {
                         writer.Write(_ownerID);
@@ -100,6 +99,7 @@ namespace BrumeServer
 
                         LastNetworkedObjectID += 1; // UNIQUE ID
                         writer.Write(LastNetworkedObjectID);
+
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                         {

@@ -18,7 +18,7 @@ namespace BrumeServer
 #pragma warning disable CS0618 // Type or member is obsolete (WRITE EVENT)
 
         public override bool ThreadSafe => false;
-        public override Version Version => new Version(1, 0, 0);
+        public override Version Version => new Version(1, 0, 1);
 
 
         public Dictionary<IClient, PlayerData> players = new Dictionary<IClient, PlayerData>();
@@ -287,6 +287,8 @@ namespace BrumeServer
                     value = reader.ReadBoolean();
                 }
             }
+
+            players[e.Client].IsReady = value;
 
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
             {
@@ -614,6 +616,11 @@ namespace BrumeServer
                 }
 
                 Room _room = rooms[_roomId];
+
+                if (!_room.IsAllPlayersReady())
+                {
+                    return;
+                }
 
                 using (DarkRiftWriter StartGameWriter = DarkRiftWriter.Create())
                 {

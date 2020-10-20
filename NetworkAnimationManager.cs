@@ -38,11 +38,11 @@ namespace BrumeServer
                 else if (message.Tag == Tags.Sync2DBlendTree)
                 {
                     SyncBoolean(sender, e);
+                }                
+                else if (message.Tag == Tags.SyncFloat)
+                {
+                    SyncFloat(sender, e);
                 }
-                //else if (message.Tag == Tags.SendAnim)
-                //{
-                //    SendAnim(sender, e);
-                //}
             }
         }
 
@@ -136,23 +136,34 @@ namespace BrumeServer
             }
 
         }
+        private void SyncFloat(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _id = reader.ReadUInt16();
+                    string floatName = reader.ReadString();
+                    float value = reader.ReadSingle();
 
-        //private void SendAnim(object sender, MessageReceivedEventArgs e)
-        //{
-        //    ushort _roomId;
+                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
 
-        //    using (Message message = e.GetMessage() as Message)
-        //    {
-        //        using (DarkRiftReader reader = message.GetReader())
-        //        {
-        //            _roomId = reader.ReadUInt16();
-        //            float foward = reader.ReadSingle();
-        //            float right = reader.ReadSingle();
+                        TeamWriter.Write(_id);
+                        TeamWriter.Write(floatName);
+                        TeamWriter.Write(value);
 
-        //            brumeServer.rooms[_roomId].SendAnim(sender, e, foward, right);
-        //        }
-        //    }
-        //}
+                        using (Message Message = Message.Create(Tags.SyncFloat, TeamWriter))
+                        {
+                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+
+        }
 
 
     }
