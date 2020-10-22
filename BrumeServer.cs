@@ -27,6 +27,7 @@ namespace BrumeServer
         private ushort lastRoomID = 0;
         private NetworkAnimationManager networkAnimationManager = new NetworkAnimationManager();
         private NetworkObjectsManager networkObjectsManager = new NetworkObjectsManager();
+        private NetworkInteractibleManager networkInteractibleManager = new NetworkInteractibleManager();
 
 
 
@@ -34,6 +35,7 @@ namespace BrumeServer
         {
             networkAnimationManager.brumeServer = this;
             networkObjectsManager.brumeServer = this;
+            networkInteractibleManager.brumeServer = this;
 
             ClientManager.ClientConnected += OnClientConnected;
             ClientManager.ClientDisconnected += OnClientDisconnected;
@@ -70,6 +72,7 @@ namespace BrumeServer
 
             e.Client.MessageReceived += networkAnimationManager.MessageReceivedFromClient;
             e.Client.MessageReceived += networkObjectsManager.MessageReceivedFromClient;
+            e.Client.MessageReceived += networkInteractibleManager.MessageReceivedFromClient;
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
 
@@ -87,6 +90,7 @@ namespace BrumeServer
 
             e.Client.MessageReceived -= networkAnimationManager.MessageReceivedFromClient;
             e.Client.MessageReceived -= networkObjectsManager.MessageReceivedFromClient;
+            e.Client.MessageReceived -= networkInteractibleManager.MessageReceivedFromClient;
             e.Client.MessageReceived -= MessageReceivedFromClient;
         }
 

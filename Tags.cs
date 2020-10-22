@@ -8,7 +8,13 @@ namespace BrumeServer
 {
     class Tags
     {
-        // Lobby >>       
+        /// <summary>
+        /// Val 0000 --> 1000
+        /// Sam 1000 --> 2000
+        /// Pierre 2000 --> 3000
+        /// </summary>
+
+        // Lobby 0 --> 299 >>       
         public static readonly ushort PlayerConnected = 0;
         public static readonly ushort Ping = 2;
         public static readonly ushort SendAllRooms = 5;
@@ -28,7 +34,7 @@ namespace BrumeServer
         public static readonly ushort SetCharacter = 140;
         // <<
 
-        // InGame >>   
+        // InGame 300 --> XXXX >>   
         public static readonly ushort StartTimer = 300;
         public static readonly ushort StopGame = 310;
         public static readonly ushort InstantiateObject = 500;
@@ -36,13 +42,20 @@ namespace BrumeServer
         public static readonly ushort DestroyObject = 515;
         public static readonly ushort Damages = 520;
         public static readonly ushort AddPoints = 550;
-         public static readonly ushort KillCharacter = 560;
+        public static readonly ushort KillCharacter = 560;
 
-            //Anim >>
+            //Anim 750 --> 769 >>
             public static readonly ushort SyncTrigger = 750;
             public static readonly ushort Sync2DBlendTree = 752;
             public static readonly ushort SyncBoolean = 754;
             public static readonly ushort SyncFloat = 756;
+             // <<
+
+            //Interactible 770 --> 789 >>
+            public static readonly ushort UnlockAltar = 770;
+            public static readonly ushort TryCaptureAltar = 771;
+            public static readonly ushort CaptureProgressAltar = 772;
+            public static readonly ushort CaptureAltar = 773;
             // <<
 
         public static readonly ushort SpawnObjPlayer = 1000;
