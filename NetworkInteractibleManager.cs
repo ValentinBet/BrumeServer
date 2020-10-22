@@ -29,19 +29,19 @@ namespace BrumeServer
             using (Message message = e.GetMessage() as Message)
             {
 
-                if (message.Tag == Tags.UnlockAltar)
+                if (message.Tag == Tags.UnlockInteractible)
                 {
                     UnlockAltar(sender, e);
                 }               
-                else if (message.Tag == Tags.TryCaptureAltar)
+                else if (message.Tag == Tags.TryCaptureInteractible)
                 {
                     TryCaptureAltar(sender, e);
                 }
-                else if (message.Tag == Tags.CaptureProgressAltar)
+                else if (message.Tag == Tags.CaptureProgressInteractible)
                 {
                     CaptureProgressAltar(sender, e);
                 }
-                else if (message.Tag == Tags.CaptureAltar)
+                else if (message.Tag == Tags.CaptureInteractible)
                 {
                     CaptureAltar(sender, e);
                 }
@@ -62,7 +62,7 @@ namespace BrumeServer
 
                         Writer.Write(_altarID);
 
-                        using (Message Message = Message.Create(Tags.UnlockAltar, Writer))
+                        using (Message Message = Message.Create(Tags.UnlockInteractible, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
                             {
@@ -92,7 +92,7 @@ namespace BrumeServer
                         Writer.Write(_altarID);
                         Writer.Write(team);
 
-                        using (Message Message = Message.Create(Tags.TryCaptureAltar, Writer))
+                        using (Message Message = Message.Create(Tags.TryCaptureInteractible, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
                             {
@@ -121,7 +121,7 @@ namespace BrumeServer
                         Writer.Write(_altarID);
                         Writer.Write(progress);
 
-                        using (Message Message = Message.Create(Tags.CaptureProgressAltar, Writer))
+                        using (Message Message = Message.Create(Tags.CaptureProgressInteractible, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
                             {
@@ -150,7 +150,7 @@ namespace BrumeServer
                         Writer.Write(_altarID);
                         Writer.Write(team);
 
-                        using (Message Message = Message.Create(Tags.CaptureAltar, Writer))
+                        using (Message Message = Message.Create(Tags.CaptureInteractible, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
                             {
