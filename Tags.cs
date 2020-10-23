@@ -49,7 +49,7 @@ namespace BrumeServer
             public static readonly ushort Sync2DBlendTree = 752;
             public static readonly ushort SyncBoolean = 754;
             public static readonly ushort SyncFloat = 756;
-             // <<
+            // <<
 
             //Interactible 770 --> 789 >>
             public static readonly ushort UnlockInteractible = 770;

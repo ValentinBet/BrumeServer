@@ -31,24 +31,24 @@ namespace BrumeServer
 
                 if (message.Tag == Tags.UnlockInteractible)
                 {
-                    UnlockAltar(sender, e);
+                    UnlockInteractible(sender, e);
                 }               
                 else if (message.Tag == Tags.TryCaptureInteractible)
                 {
-                    TryCaptureAltar(sender, e);
+                    TryCaptureInteractible(sender, e);
                 }
                 else if (message.Tag == Tags.CaptureProgressInteractible)
                 {
-                    CaptureProgressAltar(sender, e);
+                    CaptureProgressInteractible(sender, e);
                 }
                 else if (message.Tag == Tags.CaptureInteractible)
                 {
-                    CaptureAltar(sender, e);
+                    CaptureInteractible(sender, e);
                 }
             }
         }
 
-        private void UnlockAltar(object sender, MessageReceivedEventArgs e)
+        private void UnlockInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -77,7 +77,7 @@ namespace BrumeServer
             }
         }
 
-        private void TryCaptureAltar(object sender, MessageReceivedEventArgs e)
+        private void TryCaptureInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -107,7 +107,7 @@ namespace BrumeServer
             }
         }
 
-        private void CaptureProgressAltar(object sender, MessageReceivedEventArgs e)
+        private void CaptureProgressInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -136,7 +136,7 @@ namespace BrumeServer
             }
         }
 
-        private void CaptureAltar(object sender, MessageReceivedEventArgs e)
+        private void CaptureInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
