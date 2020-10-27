@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BrumeServer
+﻿namespace BrumeServer
 {
     class Tags
     {
@@ -12,6 +6,8 @@ namespace BrumeServer
         /// Val 0000 --> 1000
         /// Sam 1000 --> 2000
         /// Pierre 2000 --> 3000
+        /// 
+        /// VALEUR MAX 65535
         /// </summary>
 
         // Lobby 0 --> 299 >>       
@@ -56,6 +52,11 @@ namespace BrumeServer
             public static readonly ushort TryCaptureInteractible = 772;
             public static readonly ushort CaptureProgressInteractible = 774;
             public static readonly ushort CaptureInteractible = 776;
+            // <<
+
+            //Ward & Vision 790 --> 799 >>
+            public static readonly ushort LaunchWard = 790;
+            public static readonly ushort StartWardLifeTime = 791;
             // <<
 
         public static readonly ushort SpawnObjPlayer = 1000;
