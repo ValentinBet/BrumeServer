@@ -182,9 +182,17 @@ namespace BrumeServer
                 {
                     ushort _ID = reader.ReadUInt16();
 
+                    float x = reader.ReadSingle();
+                    float y = reader.ReadSingle();
+                    float z = reader.ReadSingle();
+
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(_ID);
+
+                        Writer.Write(x);
+                        Writer.Write(y);
+                        Writer.Write(z);
 
                         using (Message Message = Message.Create(Tags.LaunchWard, Writer))
                         {
@@ -201,7 +209,6 @@ namespace BrumeServer
             }
         }
 
-
         private void StartWardLifeTime(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -209,16 +216,11 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     ushort _ID = reader.ReadUInt16();
-                    float x = reader.ReadSingle();
-                    float y = reader.ReadSingle();
-                    float z = reader.ReadSingle();
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(_ID);
-                        Writer.Write(x);
-                        Writer.Write(y);
-                        Writer.Write(z);
+
 
                         using (Message Message = Message.Create(Tags.StartWardLifeTime, Writer))
                         {
@@ -234,7 +236,5 @@ namespace BrumeServer
                 }
             }
         }
-
-
     }
 }
