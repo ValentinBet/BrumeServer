@@ -194,6 +194,7 @@ namespace BrumeServer
                         Writer.Write(y);
                         Writer.Write(z);
 
+                        Console.WriteLine(x + "/" +y + "/" +z);
                         using (Message Message = Message.Create(Tags.LaunchWard, Writer))
                         {
                             foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)

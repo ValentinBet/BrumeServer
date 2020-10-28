@@ -421,11 +421,8 @@ namespace BrumeServer
 
             }
 
-            rooms[_roomID].Players.Add(e.Client, players[e.Client]);
-            players[e.Client].RoomID = _roomID;
             players[e.Client].playerTeam = rooms[_roomID].GetTeamWithLowestPlayerAmount();
-
-            WriteEvent(players[e.Client].ID + " - " + players[e.Client].Name + " joined Room : " + _roomID + " as team --> " + players[e.Client].playerTeam, LogType.Info);
+            players[e.Client].RoomID = _roomID;
 
             using (DarkRiftWriter RoomWriter = DarkRiftWriter.Create())
             {
@@ -439,6 +436,8 @@ namespace BrumeServer
                         client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
+
+            rooms[_roomID].Players.Add(e.Client, players[e.Client]);
 
             WriteEvent(players[e.Client].ID + " - " + players[e.Client].Name + " joined Room : " + _roomID + " as team --> " + players[e.Client].playerTeam, LogType.Info);
 
