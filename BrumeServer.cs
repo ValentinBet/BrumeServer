@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 namespace BrumeServer
 {
@@ -99,6 +100,10 @@ namespace BrumeServer
         {
             using (Message message = e.GetMessage() as Message)
             {
+                if (message.IsPingMessage)
+                {
+                    Ping(sender, e);
+                }
                 if (message.Tag == Tags.CreateRoom)
                 {
                     CreateRoom(sender, e);
@@ -171,6 +176,23 @@ namespace BrumeServer
 
             }
         }
+
+        private void Ping(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                {
+                    using (Message acknowledgementMessage = Message.Create(Tags.Ping, Writer))
+                    {
+                        acknowledgementMessage.MakePingAcknowledgementMessage(message);
+
+                        e.Client.SendMessage(acknowledgementMessage, e.SendMode);
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region Player
