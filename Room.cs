@@ -18,7 +18,7 @@ namespace BrumeServer
         public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
 
 
-        public Room( ushort ID, string name, PlayerData host, IClient hostClient, ushort maxPlayers = 12)
+        public Room( ushort ID, string name, PlayerData host, IClient hostClient, ushort maxPlayers = 6)
         {
             this.ID = ID;
             this.Name = name;

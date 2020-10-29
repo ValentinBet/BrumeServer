@@ -16,7 +16,7 @@ namespace BrumeServer
 {
     public class BrumeServer : Plugin
     {
-#pragma warning disable CS0618 // Type or member is obsolete (WRITE EVENT)
+#pragma warning disable CS0618 // obsolete (WRITE EVENT)
 
         public override bool ThreadSafe => false;
         public override Version Version => new Version(1, 0, 1);
