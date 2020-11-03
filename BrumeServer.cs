@@ -19,7 +19,7 @@ namespace BrumeServer
 #pragma warning disable CS0618 // obsolete (WRITE EVENT)
 
         public override bool ThreadSafe => false;
-        public override Version Version => new Version(1, 0, 1);
+        public override Version Version => new Version(1, 0, 2);
 
 
         public Dictionary<IClient, Player> players = new Dictionary<IClient, Player>();
@@ -80,8 +80,7 @@ namespace BrumeServer
         private void OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
             Player _roomPlayer = players[e.Client];
-
-            if (_roomPlayer.Room == null)
+            if (_roomPlayer.Room != null)
             {
                 QuitRoom(e.Client, rooms[_roomPlayer.Room.ID]);
 
