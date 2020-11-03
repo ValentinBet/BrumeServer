@@ -20,5 +20,8 @@ namespace BrumeServer
         }
 
         public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
+
+        public static int GameTime = 300000; // ms
+        public static int AltarLockTime = 15000; // ms
     }
 }

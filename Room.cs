@@ -16,8 +16,6 @@ namespace BrumeServer
         public Player Host { get; set; }
         public Dictionary<IClient, Player> Players = new Dictionary<IClient, Player>();
         public RoomTimers Timers;
-        private float UnlockAltarTime = 15000; // 15 sec
-        private float GameTime = 180000; // 3 Min
 
         public RoomAltars Altars;
         // InGame >>
@@ -291,7 +289,7 @@ namespace BrumeServer
 
         public void StartAltarTimer()
         {
-            Timers.StartNewAltarTimer(UnlockAltarTime);
+            Timers.StartNewAltarTimer(GameData.AltarLockTime);
         }
 
         public void AltarTimerElapsed()
@@ -315,7 +313,7 @@ namespace BrumeServer
         public void StartGameTimer()
         {
             StartTimer();
-            Timers.StartNewGameTimer(GameTime);
+            Timers.StartNewGameTimer(GameData.GameTime);
         }
         internal void GameTimerElapsed()
         {
