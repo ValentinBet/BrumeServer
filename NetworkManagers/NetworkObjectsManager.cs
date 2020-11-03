@@ -59,7 +59,7 @@ namespace BrumeServer
 
                         using (Message MessageW = Message.Create(Tags.DestroyObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                                 client.Key.SendMessage(MessageW, SendMode.Reliable);
                         }
                     }
@@ -103,7 +103,7 @@ namespace BrumeServer
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                                 client.Key.SendMessage(MessageW, SendMode.Reliable);
                         }
                     }
@@ -155,7 +155,7 @@ namespace BrumeServer
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.SynchroniseObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(MessageW, SendMode.Unreliable);
                         }
                     }

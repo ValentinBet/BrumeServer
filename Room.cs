@@ -13,22 +13,37 @@ namespace BrumeServer
         public ushort ID { get; set; }
         public string Name { get; set; }
         public ushort MaxPlayers { get; set; }
-        public PlayerData Host { get; set; }
+        public Player Host { get; set; }
+        public Dictionary<IClient, Player> Players = new Dictionary<IClient, Player>();
+        public RoomTimers Timers;
+        private float UnlockAltarTime = 15000; // 15 sec
+        private float GameTime = 180000; // 3 Min
 
-        public Dictionary<IClient, PlayerData> Players = new Dictionary<IClient, PlayerData>();
+        public RoomAltars Altars;
+        // InGame >>
+        public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
+        // <<
 
-
-        public Room( ushort ID, string name, PlayerData host, IClient hostClient, ushort maxPlayers = 6)
+        public Room(ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
         {
+            Timers = new RoomTimers(this);
+            Altars = new RoomAltars();
+
             this.ID = ID;
             this.Name = name;
             this.Host = host;
             this.MaxPlayers = maxPlayers;
+
             Players.Add(hostClient, host);
+            Scores.Add(Team.blue, 0);
+            Scores.Add(Team.red, 0);
         }
 
-        public Room()
+        public Room() { }
+
+        internal void destroy()
         {
+            Timers.StopTimersInstantly();
         }
 
         public Team GetTeamWithLowestPlayerAmount()
@@ -43,12 +58,11 @@ namespace BrumeServer
             }
         }
 
-
         public int GetPlayerAmountInCertainTeam(Team team)
         {
             int _count = 0;
 
-            foreach (KeyValuePair<IClient, PlayerData> player in Players)
+            foreach (KeyValuePair<IClient, Player> player in Players)
             {
                 if (player.Value.playerTeam == team)
                 {
@@ -65,6 +79,8 @@ namespace BrumeServer
             this.ID = e.Reader.ReadUInt16();
             this.Name = e.Reader.ReadString();
             this.MaxPlayers = e.Reader.ReadUInt16();
+            this.Scores[Team.blue] = e.Reader.ReadUInt16();
+            this.Scores[Team.red] = e.Reader.ReadUInt16();
         }
 
         public void Serialize(SerializeEvent e)
@@ -72,20 +88,15 @@ namespace BrumeServer
             e.Writer.Write(ID);
             e.Writer.Write(Name);
             e.Writer.Write(MaxPlayers);
+            e.Writer.Write(Scores[Team.blue]);
+            e.Writer.Write(Scores[Team.red]);
             e.Writer.Write((ushort)Players.Count); // LocalOnly
         }
 
-        public PlayerData FindPlayerByID(ushort ID)
+        public Player FindPlayerByID(ushort ID)
         {
             return Players.Single(x => x.Key.ID == ID).Value;
         }
-
-
-        internal void QuitRoom()
-        {
-            
-        }
-
 
         public void StartGame()
         {
@@ -93,14 +104,39 @@ namespace BrumeServer
             {
                 using (Message Message = Message.Create(Tags.StartGame, Writer))
                 {
-
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                     {
                         client.Key.SendMessage(Message, SendMode.Reliable);
                     }
-
                 }
             }
+
+            Console.WriteLine("[Info - Room] | Game Started in Room : " + ID);
+        }
+
+        public void PlayerJoinGameScene()
+        {
+            foreach (KeyValuePair<IClient, Player> player in Players)
+            {
+                if (!player.Value.IsInGameScene)
+                {
+                    return;
+                }
+            }
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.AllPlayerJoinGameScene, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+
+            StartGameTimer();
+            StartAltarTimer();
         }
 
         public void SpawnObjPlayer(object sender, MessageReceivedEventArgs e)
@@ -113,7 +149,7 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                     {
                         client.Key.SendMessage(Message, SendMode.Reliable);
                     }
@@ -123,7 +159,7 @@ namespace BrumeServer
             //Spawn Old Players
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
-                foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                foreach (KeyValuePair<IClient, Player> client in Players)
                 {
                     if (e.Client == client.Key) { continue; }
 
@@ -146,7 +182,7 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.SupprObjPlayer, GameWriter))
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                     {
                         client.Key.SendMessage(Message, SendMode.Reliable);
                     }
@@ -173,7 +209,7 @@ namespace BrumeServer
                     message.Serialize(writer);
                 }
 
-                foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                foreach (KeyValuePair<IClient, Player> client in Players)
                 {
                     if (e.Client == client.Key) { continue; }
                     client.Key.SendMessage(message, e.SendMode);
@@ -187,7 +223,7 @@ namespace BrumeServer
             {
                 using (Message Message = Message.Create(Tags.StartTimer, Writer))
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                     {
                         client.Key.SendMessage(Message, SendMode.Reliable);
                     }
@@ -196,14 +232,18 @@ namespace BrumeServer
             }
         }
 
-
         public void StopGame()
         {
+            foreach (KeyValuePair<IClient, Player> player in Players)
+            {
+                player.Value.IsInGameScene = false;
+            }
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 using (Message Message = Message.Create(Tags.StopGame, Writer))
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                     {
                         client.Key.SendMessage(Message, SendMode.Reliable);
                     }
@@ -223,7 +263,7 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.AddPoints, TeamWriter))
                 {
-                    foreach (KeyValuePair<IClient, PlayerData> client in Players)
+                    foreach (KeyValuePair<IClient, Player> client in Players)
                         client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
@@ -231,8 +271,7 @@ namespace BrumeServer
 
         internal bool IsAllPlayersReady()
         {
-
-            foreach (PlayerData p in Players.Values)
+            foreach (Player p in Players.Values)
             {
                 if (!p.IsReady)
                 {
@@ -242,5 +281,47 @@ namespace BrumeServer
 
             return true;
         }
+
+        #region Timers
+
+        public void TimerCreated() // Call in RoomTimers
+        {
+            Console.WriteLine("[Info - Room] | BrumeServer - RoomTimers generated for Room : " + ID);
+        }
+
+        public void StartAltarTimer()
+        {
+            Timers.StartNewAltarTimer(UnlockAltarTime);
+        }
+
+        public void AltarTimerElapsed()
+        {
+            ushort chosenAltar = Altars.GetRandomFreeAltar();
+            Altars.ChooseAltar(chosenAltar);
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                Writer.Write(chosenAltar);
+
+                using (Message Message = Message.Create(Tags.UnlockInteractible, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        public void StartGameTimer()
+        {
+            StartTimer();
+            Timers.StartNewGameTimer(GameTime);
+        }
+        internal void GameTimerElapsed()
+        {
+            StopGame();
+            Console.WriteLine("[Info - Room] | BrumeServer - Stop Game ");
+        }
+        #endregion
     }
 }

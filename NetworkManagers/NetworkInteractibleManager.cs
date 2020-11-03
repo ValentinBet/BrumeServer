@@ -10,19 +10,14 @@ namespace BrumeServer
 {
     class NetworkInteractibleManager
     {
-
         public BrumeServer brumeServer;
 
         private static readonly NetworkInteractibleManager instance;
         public static NetworkInteractibleManager Instance { get { return instance; } }
 
-        static NetworkInteractibleManager()
-        {
-        }
+        static NetworkInteractibleManager() { }
 
-        public NetworkInteractibleManager()
-        {
-        }
+        public NetworkInteractibleManager() { }
 
         internal void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)
         {
@@ -32,7 +27,7 @@ namespace BrumeServer
                 if (message.Tag == Tags.UnlockInteractible)
                 {
                     UnlockInteractible(sender, e);
-                }               
+                }
                 else if (message.Tag == Tags.TryCaptureInteractible)
                 {
                     TryCaptureInteractible(sender, e);
@@ -56,23 +51,25 @@ namespace BrumeServer
             }
         }
 
+
+
         private void UnlockInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _altarID = reader.ReadUInt16();
+                    ushort ID = reader.ReadUInt16();
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
 
-                        Writer.Write(_altarID);
+                        Writer.Write(ID);
 
                         using (Message Message = Message.Create(Tags.UnlockInteractible, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {
@@ -102,7 +99,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.TryCaptureInteractible, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {
@@ -121,17 +118,17 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _altarID = reader.ReadUInt16();
+                    ushort _ID = reader.ReadUInt16();
                     float progress = reader.ReadSingle();
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
-                        Writer.Write(_altarID);
+                        Writer.Write(_ID);
                         Writer.Write(progress);
 
                         using (Message Message = Message.Create(Tags.CaptureProgressInteractible, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {
@@ -150,17 +147,22 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _altarID = reader.ReadUInt16();
+                    ushort _ID = reader.ReadUInt16();
                     ushort team = reader.ReadUInt16();
+
+                    if (GameData.altarsID.Contains(_ID))
+                    {
+                        brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartAltarTimer();
+                    }
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
-                        Writer.Write(_altarID);
+                        Writer.Write(_ID);
                         Writer.Write(team);
 
                         using (Message Message = Message.Create(Tags.CaptureInteractible, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {
@@ -194,10 +196,9 @@ namespace BrumeServer
                         Writer.Write(y);
                         Writer.Write(z);
 
-                        Console.WriteLine(x + "/" +y + "/" +z);
                         using (Message Message = Message.Create(Tags.LaunchWard, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {
@@ -225,7 +226,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.StartWardLifeTime, Writer))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players)
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
                             {
                                 if (client.Key != e.Client)
                                 {

@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.Generic;
+
 namespace BrumeServer
 {
     public class GameData
@@ -17,5 +19,6 @@ namespace BrumeServer
             B = 30
         }
 
+        public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
     }
 }

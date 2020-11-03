@@ -64,7 +64,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.SyncTrigger, TeamWriter))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
                         }
                     }
@@ -99,7 +99,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
                         }
                     }
@@ -128,7 +128,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
                         }
                     }
@@ -156,7 +156,7 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.SyncFloat, TeamWriter))
                         {
-                            foreach (KeyValuePair<IClient, PlayerData> client in brumeServer.rooms[brumeServer.players[e.Client].RoomID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
                         }
                     }
