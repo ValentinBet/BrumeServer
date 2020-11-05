@@ -15,9 +15,10 @@ namespace BrumeServer
         public ushort MaxPlayers { get; set; }
         public Player Host { get; set; }
         public Dictionary<IClient, Player> Players = new Dictionary<IClient, Player>();
-        public RoomTimers Timers;
 
+        public RoomTimers Timers;
         public RoomAltars Altars;
+        public ChampSelect champSelect;
         // InGame >>
         public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
         // <<
@@ -26,6 +27,7 @@ namespace BrumeServer
         {
             Timers = new RoomTimers(this);
             Altars = new RoomAltars();
+            champSelect = new ChampSelect();
 
             this.ID = ID;
             this.Name = name;
@@ -98,6 +100,13 @@ namespace BrumeServer
 
         public void StartGame()
         {
+
+            foreach (KeyValuePair<IClient, Player> player in Players)
+            {
+                player.Value.IsReady = false;
+            }
+
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 using (Message Message = Message.Create(Tags.StartGame, Writer))
@@ -132,7 +141,7 @@ namespace BrumeServer
                     }
                 }
             }
-
+            champSelect.ResetData();
             StartGameTimer();
             StartAltarTimer();
         }
@@ -320,6 +329,34 @@ namespace BrumeServer
             StopGame();
             Console.WriteLine("[Info - Room] | BrumeServer - Stop Game ");
         }
+
         #endregion
+
+        internal void TryPickCharacter(Character character, IClient Iclient)
+        {
+            if (champSelect.TryPickChamp(Players[Iclient].playerTeam, Players[Iclient], character)) // Si slot character libre
+            {
+                Players[Iclient].playerCharacter = character;
+                Players[Iclient].IsReady = true;
+
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                {
+                    Writer.Write(Iclient.ID);
+                    Writer.Write((ushort)character);
+
+                    using (Message Message = Message.Create(Tags.SetCharacter, Writer))
+                    {
+                        foreach (KeyValuePair<IClient, Player> client in Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+            else
+            {
+                return;
+            }
+
+        }
+
     }
 }

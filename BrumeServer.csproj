@@ -49,15 +49,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
+    <Compile Include="Room\ChampSelect.cs" />
     <Compile Include="NetworkManagers\NetworkAnimationManager.cs" />
     <Compile Include="NetworkManagers\NetworkInteractibleManager.cs" />
     <Compile Include="NetworkManagers\NetworkObjectsManager.cs" />
-    <Compile Include="RoomAltars.cs" />
+    <Compile Include="Room\RoomAltars.cs" />
     <Compile Include="Timers\NetworkTimer.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Room.cs" />
+    <Compile Include="Room\Room.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Timers\RoomTimers.cs" />
     <Compile Include="Data\Tags.cs" />

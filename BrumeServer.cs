@@ -787,6 +787,7 @@ namespace BrumeServer
         private void SelectCharacter(object sender, MessageReceivedEventArgs e)
         {
             Character _character;
+
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
@@ -795,20 +796,7 @@ namespace BrumeServer
                 }
             }
 
-            players[e.Client].playerCharacter = _character;
-
-            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-            {
-
-                Writer.Write(e.Client.ID);
-                Writer.Write((ushort)_character);
-
-                using (Message Message = Message.Create(Tags.SetCharacter, Writer))
-                {
-                    foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
-                }
-            }
+            rooms[players[e.Client].Room.ID].TryPickCharacter(_character, e.Client);
         }
 
 
