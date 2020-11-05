@@ -53,7 +53,7 @@ namespace BrumeServer
                 throw new Exception("DEMANDE DE CREATION DE ALTARTIMER AVANT LA FIN DU PRECEDENT");
             }
 
-            altarTimer.Interval = time; 
+            altarTimer.Interval = time;
 
             altarTimer.Enabled = true;
         }
@@ -65,7 +65,7 @@ namespace BrumeServer
 
         public void AltarTimerElapsed(Object source, ElapsedEventArgs e)
         {
-            room.AltarTimerElapsed(); 
+            room.AltarTimerElapsed();
             // + Event dans le NetworkTimer
         }
 
@@ -92,7 +92,22 @@ namespace BrumeServer
             // + Event dans le NetworkTimer
         }
 
+        internal void StartNewFrogTimer(ushort frogID, float time = 1000)
+        {
+            NetworkTimer newFrogTimer = new NetworkTimer
+            {
+                AutoReset = false,
+                Interval = time,
+                Enabled = true
+            };
 
+            newFrogTimer.Elapsed += (sender, e) => FrogTimerElapsed(sender, e, frogID, ref newFrogTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+        }
 
+        private void FrogTimerElapsed(Object source, ElapsedEventArgs e, ushort frogID, ref NetworkTimer newFrogTime)
+        {
+            room.FrogTimerElapsed(frogID);
+            newFrogTime.Dispose();
+        }
     }
 }

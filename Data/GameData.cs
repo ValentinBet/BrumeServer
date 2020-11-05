@@ -21,6 +21,14 @@ namespace BrumeServer
             B = 30
         }
 
+        public enum InteractibleType : ushort
+        {
+            none = 0,
+            Altar = 1,
+            VisionTower = 2,
+            Frog = 3
+        }
+
         public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
 
         public static readonly Dictionary<Character, Player> ChampSelectSlots = new Dictionary<Character, Player>() { 
@@ -33,6 +41,7 @@ namespace BrumeServer
 
         public static int GameTime = 300000; // ms
         public static int AltarLockTime = 15000; // ms
+        public static int FrogRespawnTime = 10000; // ms
 
 
     }

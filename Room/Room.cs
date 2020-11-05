@@ -117,9 +117,9 @@ namespace BrumeServer
                     }
                 }
             }
-
-            Console.WriteLine("[Info - Room] | Game Started in Room : " + ID);
+            Log.Message("Game Started in Room : " + ID);
         }
+
 
         public void PlayerJoinGameScene()
         {
@@ -224,6 +224,7 @@ namespace BrumeServer
             }
         }
 
+
         public void StartTimer()
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -290,10 +291,30 @@ namespace BrumeServer
         }
 
         #region Timers
+        internal void StartNewFrogTimer(ushort frogID)
+        {
+            Timers.StartNewFrogTimer(frogID, GameData.FrogRespawnTime);
+        }
+
+        internal void FrogTimerElapsed(ushort frogID)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room 
+
+                Writer.Write(frogID);
+
+                using (Message Message = Message.Create(Tags.FrogTimerElasped, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
 
         public void TimerCreated() // Call in RoomTimers
         {
-            Console.WriteLine("[Info - Room] | BrumeServer - RoomTimers generated for Room : " + ID);
+            Log.Message("BrumeServer - RoomTimers generated for Room : " + ID);
         }
 
         public void StartAltarTimer()
@@ -327,7 +348,7 @@ namespace BrumeServer
         internal void GameTimerElapsed()
         {
             StopGame();
-            Console.WriteLine("[Info - Room] | BrumeServer - Stop Game ");
+            Log.Message("BrumeServer - Stop Game ");
         }
 
         #endregion

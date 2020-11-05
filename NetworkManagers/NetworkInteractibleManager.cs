@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static BrumeServer.GameData;
 
 namespace BrumeServer
 {
@@ -149,10 +150,23 @@ namespace BrumeServer
                 {
                     ushort _ID = reader.ReadUInt16();
                     ushort team = reader.ReadUInt16();
+                    InteractibleType type = (InteractibleType)reader.ReadUInt16();
 
-                    if (GameData.altarsID.Contains(_ID))
+                    switch (type)
                     {
-                        brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartAltarTimer();
+                        case InteractibleType.none:
+                            Log.Message("Interactible type == none !", MessageType.Warning);
+                            break;
+                        case InteractibleType.Altar:
+                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartAltarTimer();
+                            break;
+                        case InteractibleType.VisionTower:
+                            break;
+                        case InteractibleType.Frog:
+                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewFrogTimer(_ID);
+                            break;
+                        default:
+                            throw new Exception("Interactible type not existing");
                     }
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())

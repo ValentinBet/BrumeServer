@@ -8,6 +8,7 @@ namespace BrumeServer
         // Compare le temps actuel du serveur pour généré un temps passé
 
         private DateTime m_dueTime;
+        internal int NetworkTimerUniqueRoomID = 0;
 
         public double TimeLeft => (this.m_dueTime - DateTime.Now).TotalMilliseconds;
 

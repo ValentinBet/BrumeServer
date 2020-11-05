@@ -49,7 +49,6 @@ namespace BrumeServer
             {
                 return false;
             }
-            // If there is NO player on the slot / Quit
 
             if (player.playerCharacter != Character.none) // If the player has already choose a character
             {
