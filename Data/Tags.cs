@@ -54,7 +54,8 @@
             public static readonly ushort TryCaptureInteractible = 772;
             public static readonly ushort CaptureProgressInteractible = 774;
             public static readonly ushort CaptureInteractible = 776;
-            public static readonly ushort FrogTimerElasped = 778;
+            public static readonly ushort FrogTimerElapsed = 778;
+            public static readonly ushort VisionTowerTimerElapsed = 779;
             // <<
 
             //Ward & Vision 790 --> 799 >>

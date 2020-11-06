@@ -224,7 +224,6 @@ namespace BrumeServer
             }
         }
 
-
         public void StartTimer()
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -304,14 +303,33 @@ namespace BrumeServer
 
                 Writer.Write(frogID);
 
-                using (Message Message = Message.Create(Tags.FrogTimerElasped, Writer))
+                using (Message Message = Message.Create(Tags.FrogTimerElapsed, Writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
                         client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
         }
+        internal void StartNewVisionTowerTimer(ushort iD)
+        {
+            Timers.StartNewVisionTowerTimer(iD, GameData.VisionTowerReactivateTime);
+        }
 
+        internal void VisionTowerTimerElapsed(ushort ID)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room 
+
+                Writer.Write(ID);
+
+                using (Message Message = Message.Create(Tags.VisionTowerTimerElapsed, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
         public void TimerCreated() // Call in RoomTimers
         {
             Log.Message("BrumeServer - RoomTimers generated for Room : " + ID);

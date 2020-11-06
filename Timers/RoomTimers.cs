@@ -109,5 +109,23 @@ namespace BrumeServer
             room.FrogTimerElapsed(frogID);
             newFrogTime.Dispose();
         }
+
+        internal void StartNewVisionTowerTimer(ushort iD, int time)
+        {
+            NetworkTimer newTowerTimer = new NetworkTimer
+            {
+                AutoReset = false,
+                Interval = time,
+                Enabled = true
+            };
+
+            newTowerTimer.Elapsed += (sender, e) => VisionTowerTimerElapsed(sender, e, iD, ref newTowerTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+        }
+
+        private void VisionTowerTimerElapsed(Object source, ElapsedEventArgs e, ushort frogID, ref NetworkTimer newFrogTime)
+        {
+            room.VisionTowerTimerElapsed(frogID);
+            newFrogTime.Dispose();
+        }
     }
 }

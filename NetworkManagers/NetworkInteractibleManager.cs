@@ -161,6 +161,7 @@ namespace BrumeServer
                             brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartAltarTimer();
                             break;
                         case InteractibleType.VisionTower:
+                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewVisionTowerTimer(_ID);
                             break;
                         case InteractibleType.Frog:
                             brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewFrogTimer(_ID);
