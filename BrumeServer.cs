@@ -118,10 +118,6 @@ namespace BrumeServer
                 {
                     LobbyStartGame(sender, e);
                 }
-                //else if (message.Tag == Tags.QuitGame)
-                //{
-                //    QuitGame(sender, e);
-                //}
                 else if (message.Tag == Tags.ChangeName)
                 {
                     ChangeName(sender, e);
@@ -154,14 +150,6 @@ namespace BrumeServer
                 {
                     PlayerJoinGameScene(sender, e);
                 }
-                //else if (message.Tag == Tags.StartTimer)
-                //{
-                //    StartTimer(sender, e);
-                //}
-                //else if (message.Tag == Tags.StopGame)
-                //{
-                //    StopGame(sender, e);
-                //}
                 else if (message.Tag == Tags.AddPoints)
                 {
                     AddPointsReceiver(sender, e);
@@ -225,6 +213,7 @@ namespace BrumeServer
                                 Log.Message("ERREUR EQUIPE NON EXISTANTE, BRUMESERVER.CS / l - 222", MessageType.Warning);
                                 break;
                         }
+                        return;
                     }
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -614,7 +603,7 @@ namespace BrumeServer
         {
             if (room.Players.Count == 0)
             {
-                rooms[room.ID].destroy();
+                rooms[room.ID].Destroy();
                 rooms.Remove(room.ID);
 
                 using (DarkRiftWriter DeleteRoomWriter = DarkRiftWriter.Create())
@@ -733,30 +722,6 @@ namespace BrumeServer
 
         }
 
-        //private void QuitGame(object sender, MessageReceivedEventArgs e)
-        //{
-        //    ushort _roomId;
-
-        //    using (Message message = e.GetMessage() as Message)
-        //    {
-        //        using (DarkRiftReader reader = message.GetReader())
-        //        {
-        //            _roomId = reader.ReadUInt16();
-        //        }
-
-        //        Room _room = rooms[_roomId];
-
-        //        using (DarkRiftWriter QuitGameWriter = DarkRiftWriter.Create())
-        //        {
-        //            using (Message Message = Message.Create(Tags.QuitGame, QuitGameWriter))
-        //            {
-        //                foreach (KeyValuePair<IClient, PlayerData> client in _room.Players)
-        //                    client.Key.SendMessage(Message, SendMode.Reliable);
-        //            }
-        //        }
-        //    }
-        //}
-
         private void PlayerJoinGameScene(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -770,34 +735,6 @@ namespace BrumeServer
             }
         }
 
-
-        // TRANSFERER EN SERVER ONLY --> ROOM  >>
-
-        //private void StartTimer(object sender, MessageReceivedEventArgs e)
-        //{
-        //    using (Message message = e.GetMessage() as Message)
-        //    {
-        //        using (DarkRiftReader reader = message.GetReader())
-        //        {
-        //            ushort _roomId = reader.ReadUInt16();
-        //            rooms[_roomId].StartTimer();
-        //        }
-        //    }
-        //}
-
-        //private void StopGame(object sender, MessageReceivedEventArgs e)
-        //{
-        //    using (Message message = e.GetMessage() as Message)
-        //    {
-        //        using (DarkRiftReader reader = message.GetReader())
-        //        {
-        //            ushort _roomId = reader.ReadUInt16();
-        //            rooms[_roomId].StopGame();
-        //        }
-        //    }
-        //}
-
-        // <<
         #endregion
 
         #region ChampSelect

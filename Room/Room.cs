@@ -41,10 +41,22 @@ namespace BrumeServer
 
         public Room() { }
 
-        internal void destroy()
+        internal void Destroy()
         {
-            Timers.StopTimersInstantly();
+            Timers.StopTimersInstantly(true);
         }
+
+        public void ResetGameData()
+        {
+            Altars.ResetAltars();
+            Timers.StopTimersInstantly();
+            champSelect.ResetData();
+            Scores.Clear();
+
+            Scores.Add(Team.blue, 0);
+            Scores.Add(Team.red, 0);
+        }
+
 
         public Team GetTeamWithLowestPlayerAmount()
         {
@@ -125,7 +137,7 @@ namespace BrumeServer
         {
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
-                if (!player.Value.IsInGameScene)
+                if (!(player.Value.IsInGameScene))
                 {
                     return;
                 }
@@ -224,7 +236,7 @@ namespace BrumeServer
             }
         }
 
-        public void SendState ( object sender, MessageReceivedEventArgs e, uint _state )
+        public void SendState(object sender, MessageReceivedEventArgs e, uint _state)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -264,6 +276,8 @@ namespace BrumeServer
 
         public void StopGame()
         {
+            ResetGameData();
+
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
                 player.Value.IsInGameScene = false;
@@ -285,11 +299,15 @@ namespace BrumeServer
         {
             Timers.ResetGameTimer();
 
-            Scores[(Team)team] += 1;
+            foreach (KeyValuePair<IClient, Player> player in Players)
+            {
+                player.Value.IsInGameScene = false;
+            }
 
-            if (Scores[(Team)team] == GameData.RoundToWin)
+            if (Scores[(Team)team] == GameData.RoundToWin - 1)
             {
                 StopGame();
+                return;
             }
 
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
@@ -308,6 +326,8 @@ namespace BrumeServer
 
         public void Addpoints(ushort targetTeam, ushort value)
         {
+            Scores[(Team)targetTeam] += value;
+
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room

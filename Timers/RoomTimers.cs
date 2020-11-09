@@ -29,15 +29,25 @@ namespace BrumeServer
 
             // gameTimer
             gameTimer = new Stopwatch();
+            gameTimer.Stop();
 
             room.TimerCreated();
         }
 
-        public void StopTimersInstantly()
+        public void StopTimersInstantly(bool finalize = false)
         {
             altarTimer.Elapsed -= AltarTimerElapsed;
             gameTimer.Stop();
             altarTimer.Enabled = false;
+
+            if (finalize)
+            {
+                FinalizeTimer();
+            }
+        }
+
+        private void FinalizeTimer()
+        {
             altarTimer.Dispose();
         }
 
