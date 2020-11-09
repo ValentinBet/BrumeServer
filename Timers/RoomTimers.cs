@@ -1,6 +1,7 @@
 ﻿using DarkRift.Server;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace BrumeServer
         private Room room;
 
         public NetworkTimer altarTimer;
-        public NetworkTimer gameTimer;
+        public Stopwatch gameTimer;
 
         public RoomTimers(Room room)
         {
@@ -27,11 +28,7 @@ namespace BrumeServer
             altarTimer.Elapsed += AltarTimerElapsed;
 
             // gameTimer
-            gameTimer = new NetworkTimer
-            {
-                AutoReset = false
-            };
-            gameTimer.Elapsed += GameTimerElapsed;
+            gameTimer = new Stopwatch();
 
             room.TimerCreated();
         }
@@ -39,11 +36,9 @@ namespace BrumeServer
         public void StopTimersInstantly()
         {
             altarTimer.Elapsed -= AltarTimerElapsed;
-            gameTimer.Elapsed -= GameTimerElapsed;
+            gameTimer.Stop();
             altarTimer.Enabled = false;
-            gameTimer.Enabled = false;
             altarTimer.Dispose();
-            gameTimer.Dispose();
         }
 
         public void StartNewAltarTimer(float time = 1000)
@@ -69,27 +64,25 @@ namespace BrumeServer
             // + Event dans le NetworkTimer
         }
 
-        public void StartNewGameTimer(float time = 1000)
+        public void StartNewGameStopWatch()
         {
-            if (gameTimer.Enabled)
+            if (gameTimer.IsRunning)
             {
                 throw new Exception("DEMANDE DE CREATION DE GAMETIMER AVANT LA FIN DU PRECEDENT");
             }
 
-            gameTimer.Interval = time;
             gameTimer.Start();
-
         }
 
-        public double GetGameTimerRemainingTime()
+        public void ResetGameTimer()
         {
-            return gameTimer.TimeLeft;
+            gameTimer.Reset();
+            gameTimer.Stop();
         }
 
-        public void GameTimerElapsed(Object source, ElapsedEventArgs e)
+        public TimeSpan GetGameStopWatchRemainingTime()
         {
-            room.GameTimerElapsed();
-            // + Event dans le NetworkTimer
+            return gameTimer.Elapsed;
         }
 
         internal void StartNewFrogTimer(ushort frogID, float time = 1000)

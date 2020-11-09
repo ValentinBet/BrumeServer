@@ -258,6 +258,30 @@ namespace BrumeServer
             }
         }
 
+        internal void NewRound(ushort team)
+        {
+            Timers.ResetGameTimer();
+
+            Scores[(Team)team] += 1;
+
+            if (Scores[(Team)team] == GameData.RoundToWin)
+            {
+                StopGame();
+            }
+
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                TeamWriter.Write(team);
+
+                using (Message Message = Message.Create(Tags.NewRound, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
 
         public void Addpoints(ushort targetTeam, ushort value)
         {
@@ -361,12 +385,7 @@ namespace BrumeServer
         public void StartGameTimer()
         {
             StartTimer();
-            Timers.StartNewGameTimer(GameData.GameTime);
-        }
-        internal void GameTimerElapsed()
-        {
-            StopGame();
-            Log.Message("BrumeServer - Stop Game ");
+            Timers.StartNewGameStopWatch();
         }
 
         #endregion
