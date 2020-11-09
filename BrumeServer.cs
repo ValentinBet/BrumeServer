@@ -676,7 +676,7 @@ namespace BrumeServer
                 {
                     _roomId = reader.ReadUInt16();
 
-                    int newFlag = reader.ReadInt16();
+                    uint newFlag = reader.ReadUInt16();
 
                     rooms[_roomId].SendState(sender, e, newFlag);
                 }

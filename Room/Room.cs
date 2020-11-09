@@ -224,7 +224,7 @@ namespace BrumeServer
             }
         }
 
-        public void SendState ( object sender, MessageReceivedEventArgs e, int _state )
+        public void SendState ( object sender, MessageReceivedEventArgs e, uint _state )
         {
             using (Message message = e.GetMessage() as Message)
             {
