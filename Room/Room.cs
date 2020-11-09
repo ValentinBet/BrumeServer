@@ -122,7 +122,6 @@ namespace BrumeServer
                 player.Value.IsReady = false;
             }
 
-
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 using (Message Message = Message.Create(Tags.StartGame, Writer))
@@ -158,6 +157,7 @@ namespace BrumeServer
                 }
             }
             champSelect.ResetData();
+
             StartGameTimer();
             StartAltarTimer();
         }
@@ -301,7 +301,7 @@ namespace BrumeServer
 
         internal void NewRound(ushort team)
         {
-            Timers.ResetGameTimer();
+            Timers.StopTimersInstantly();
 
             foreach (KeyValuePair<IClient, Player> player in Players)
             {

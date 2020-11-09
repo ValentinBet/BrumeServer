@@ -16,6 +16,9 @@ namespace BrumeServer
         public NetworkTimer altarTimer;
         public Stopwatch gameTimer;
 
+        public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
+        public Dictionary<NetworkTimer, ushort> towerTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
+
         public RoomTimers(Room room)
         {
             this.room = room;
@@ -37,8 +40,24 @@ namespace BrumeServer
         public void StopTimersInstantly(bool finalize = false)
         {
             altarTimer.Elapsed -= AltarTimerElapsed;
-            gameTimer.Stop();
+            gameTimer.Reset();
             altarTimer.Enabled = false;
+
+            foreach (KeyValuePair<NetworkTimer, ushort> timer in frogTemporaryTimers)
+            {
+                timer.Key.Elapsed -= (sender, e) => FrogTimerElapsed(sender, e, timer.Value, timer.Key);
+
+                timer.Key.Stop();
+                timer.Key.Dispose();
+            }
+
+            foreach (KeyValuePair<NetworkTimer, ushort> timer in towerTemporaryTimers)
+            {
+                timer.Key.Elapsed -= (sender, e) => VisionTowerTimerElapsed(sender, e, timer.Value, timer.Key);
+
+                timer.Key.Stop();
+                timer.Key.Dispose();
+            }
 
             if (finalize)
             {
@@ -87,7 +106,6 @@ namespace BrumeServer
         public void ResetGameTimer()
         {
             gameTimer.Reset();
-            gameTimer.Stop();
         }
 
         public TimeSpan GetGameStopWatchRemainingTime()
@@ -103,14 +121,17 @@ namespace BrumeServer
                 Interval = time,
                 Enabled = true
             };
+            frogTemporaryTimers.Add(newFrogTimer, frogID);
 
-            newFrogTimer.Elapsed += (sender, e) => FrogTimerElapsed(sender, e, frogID, ref newFrogTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+            newFrogTimer.Elapsed += (sender, e) => FrogTimerElapsed(sender, e, frogID,  newFrogTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
         }
 
-        private void FrogTimerElapsed(Object source, ElapsedEventArgs e, ushort frogID, ref NetworkTimer newFrogTime)
+        private void FrogTimerElapsed(Object source, ElapsedEventArgs ee, ushort frogID, NetworkTimer newFrogTimer)
         {
+            newFrogTimer.Elapsed -= (sender, e) => VisionTowerTimerElapsed(sender, e, frogID, newFrogTimer);
             room.FrogTimerElapsed(frogID);
-            newFrogTime.Dispose();
+            frogTemporaryTimers.Remove(newFrogTimer);
+            newFrogTimer.Dispose();
         }
 
         internal void StartNewVisionTowerTimer(ushort iD, int time)
@@ -121,14 +142,16 @@ namespace BrumeServer
                 Interval = time,
                 Enabled = true
             };
-
-            newTowerTimer.Elapsed += (sender, e) => VisionTowerTimerElapsed(sender, e, iD, ref newTowerTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+            towerTemporaryTimers.Add(newTowerTimer, iD);
+            newTowerTimer.Elapsed += (sender, e) => VisionTowerTimerElapsed(sender, e, iD,  newTowerTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
         }
 
-        private void VisionTowerTimerElapsed(Object source, ElapsedEventArgs e, ushort frogID, ref NetworkTimer newFrogTime)
+        private void VisionTowerTimerElapsed(Object source, ElapsedEventArgs ee, ushort ID,  NetworkTimer newTowerTimer)
         {
-            room.VisionTowerTimerElapsed(frogID);
-            newFrogTime.Dispose();
+            newTowerTimer.Elapsed -= (sender, e) => VisionTowerTimerElapsed(sender, e, ID, newTowerTimer);
+            room.VisionTowerTimerElapsed(ID);
+            towerTemporaryTimers.Remove(newTowerTimer);
+            newTowerTimer.Dispose();
         }
     }
 }
