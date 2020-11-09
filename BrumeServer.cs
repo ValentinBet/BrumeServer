@@ -467,6 +467,11 @@ namespace BrumeServer
 
             }
 
+            if (rooms[_roomID].IsStarted)
+            {
+                return;
+            }
+
             players[e.Client].playerTeam = rooms[_roomID].GetTeamWithLowestPlayerAmount();
             players[e.Client].Room = rooms[_roomID];
 
@@ -688,6 +693,8 @@ namespace BrumeServer
                 }
 
                 Room _room = rooms[_roomId];
+
+                _room.IsStarted = true;
 
                 if (!_room.IsAllPlayersReady())
                 {

@@ -23,6 +23,8 @@ namespace BrumeServer
         public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
         // <<
 
+        public bool IsStarted = false;
+
         public Room(ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
         {
             Timers = new RoomTimers(this);
@@ -93,6 +95,7 @@ namespace BrumeServer
             this.MaxPlayers = e.Reader.ReadUInt16();
             this.Scores[Team.blue] = e.Reader.ReadUInt16();
             this.Scores[Team.red] = e.Reader.ReadUInt16();
+            IsStarted = e.Reader.ReadBoolean();
         }
 
         public void Serialize(SerializeEvent e)
@@ -102,6 +105,7 @@ namespace BrumeServer
             e.Writer.Write(MaxPlayers);
             e.Writer.Write(Scores[Team.blue]);
             e.Writer.Write(Scores[Team.red]);
+            e.Writer.Write(IsStarted);
             e.Writer.Write((ushort)Players.Count); // LocalOnly
         }
 
