@@ -224,6 +224,29 @@ namespace BrumeServer
             }
         }
 
+        public void SendState ( object sender, MessageReceivedEventArgs e, int _state )
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(e.Client.ID);
+
+                    writer.Write(_state);
+
+                    message.Serialize(writer);
+                }
+
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+                    client.Key.SendMessage(message, e.SendMode);
+                }
+            }
+        }
+
         public void StartTimer()
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())

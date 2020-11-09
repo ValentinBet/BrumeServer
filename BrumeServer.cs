@@ -666,6 +666,22 @@ namespace BrumeServer
             }
         }
 
+        private void SendPlayerState ( object sender, MessageReceivedEventArgs e )
+		{
+            ushort _roomId;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _roomId = reader.ReadUInt16();
+
+                    int newFlag = reader.ReadInt16();
+
+                    rooms[_roomId].SendState(sender, e, newFlag);
+                }
+            }
+        }
         #endregion
 
         #region Game
