@@ -13,6 +13,8 @@ namespace BrumeServer
         public string Name { get; set; }
         public Room Room { get; set; }
         public bool IsReady { get; set; }
+        public float X { get; set; }
+        public float Z { get; set; }
 
         public Team playerTeam = Team.none;
         public Character playerCharacter = Character.none;
@@ -46,5 +48,10 @@ namespace BrumeServer
             e.Writer.Write((ushort)playerCharacter);
         }
 
+        internal void SetPos(float newX, float newZ)
+        {
+            X = newX;
+            Z = newZ;
+        }
     }
 }

@@ -49,10 +49,12 @@ namespace BrumeServer
                 {
                     StartWardLifeTime(sender, e);
                 }
+                else if (message.Tag == Tags.ResurectPlayer)
+                {
+                    ResurectPlayer(sender, e);
+                }
             }
         }
-
-
 
         private void UnlockInteractible(object sender, MessageReceivedEventArgs e)
         {
@@ -166,6 +168,9 @@ namespace BrumeServer
                         case InteractibleType.Frog:
                             brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewFrogTimer(_ID);
                             break;
+                        case InteractibleType.ResurectAltar:
+
+                            break;
                         default:
                             throw new Exception("Interactible type not existing");
                     }
@@ -251,6 +256,25 @@ namespace BrumeServer
                         }
                     }
                 }
+            }
+        }
+        private void ResurectPlayer(object sender, MessageReceivedEventArgs e)
+        {
+            ushort[] _IDList;
+            ushort roomID = 0;
+            
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    roomID = reader.ReadUInt16();
+                    _IDList = reader.ReadUInt16s();
+                }
+            }
+
+            for (int i = 0; i < _IDList.Length; i++)
+            {
+                brumeServer.rooms[roomID].SpawnObjPlayer(_IDList[i]);
             }
         }
     }

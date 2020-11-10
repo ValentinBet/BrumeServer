@@ -26,8 +26,11 @@ namespace BrumeServer
             none = 0,
             Altar = 1,
             VisionTower = 2,
-            Frog = 3
+            Frog = 3,
+            ResurectAltar = 4
         }
+
+        public static readonly ushort resObjInstansiateID = 5;
 
         public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
 

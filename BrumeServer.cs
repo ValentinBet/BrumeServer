@@ -11,6 +11,7 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Numerics;
 
 namespace BrumeServer
 {
@@ -215,6 +216,9 @@ namespace BrumeServer
                         }
                         return;
                     }
+
+                    Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
+                    networkObjectsManager.InstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
@@ -637,8 +641,8 @@ namespace BrumeServer
                 {
                     _roomId = reader.ReadUInt16();
                 }
-
-                rooms[_roomId].SpawnObjPlayer(sender, e);
+                ushort ID = e.Client.ID;
+                rooms[_roomId].SpawnObjPlayer(ID);
             }
         }
 
@@ -656,6 +660,8 @@ namespace BrumeServer
                     float newZ = reader.ReadSingle();
 
                     float rotaY = reader.ReadSingle();
+
+                    players[e.Client].SetPos(newX, newZ);
 
                     rooms[_roomId].SendMovement(sender, e, newX, newZ, rotaY);
                 }

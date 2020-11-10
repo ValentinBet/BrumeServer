@@ -162,11 +162,10 @@ namespace BrumeServer
             StartAltarTimer();
         }
 
-        public void SpawnObjPlayer(object sender, MessageReceivedEventArgs e)
+        public void SpawnObjPlayer(ushort ID)
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
-                ushort ID = e.Client.ID;
 
                 GameWriter.Write(ID);
 
@@ -179,22 +178,22 @@ namespace BrumeServer
                 }
             }
 
-            //Spawn Old Players
-            using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
-            {
-                foreach (KeyValuePair<IClient, Player> client in Players)
-                {
-                    if (e.Client == client.Key) { continue; }
+            ////Spawn Old Players
+            //using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
+            //{
+            //    foreach (KeyValuePair<IClient, Player> client in Players)
+            //    {
+            //        if (e.Client == client.Key) { continue; }
 
-                    ushort ID = client.Key.ID;
-                    GameWriter.Write(ID);
+            //        ushort ID = client.Key.ID;
+            //        GameWriter.Write(ID);
 
-                    using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
-                    {
-                        e.Client.SendMessage(Message, SendMode.Reliable);
-                    }
-                }
-            }
+            //        using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
+            //        {
+            //            e.Client.SendMessage(Message, SendMode.Reliable);
+            //        }
+            //    }
+            //}
         }
 
         public void SupprPlayerObj(ushort ID)

@@ -3,6 +3,7 @@ using DarkRift.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -107,6 +108,33 @@ namespace BrumeServer
                                 client.Key.SendMessage(MessageW, SendMode.Reliable);
                         }
                     }
+                }
+            }
+        }
+
+
+        public void InstantiateObject(IClient Iclient, ushort objectID, Vector3 objPos, Vector3 objRot)
+        {
+            using (DarkRiftWriter writer = DarkRiftWriter.Create())
+            {
+                writer.Write(Iclient.ID);
+                writer.Write(objectID);
+
+                writer.Write(objPos.X);
+                writer.Write(objPos.Y);
+                writer.Write(objPos.Z);
+
+                writer.Write(objRot.X);
+                writer.Write(objRot.Y);
+                writer.Write(objRot.Z);
+
+                LastNetworkedObjectID += 1; // UNIQUE ID
+                writer.Write(LastNetworkedObjectID);
+
+                using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[Iclient].Room.ID].Players)
+                        client.Key.SendMessage(MessageW, SendMode.Reliable);
                 }
             }
         }
