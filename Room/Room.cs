@@ -170,11 +170,12 @@ namespace BrumeServer
             StartAltarTimer();
         }
 
-        public void SpawnObjPlayer(ushort ID)
+        public void SpawnObjPlayer(ushort ID, bool resurect = false)
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
                 GameWriter.Write(ID);
+                GameWriter.Write(resurect);
 
                 using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
                 {

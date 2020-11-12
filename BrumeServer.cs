@@ -593,6 +593,9 @@ namespace BrumeServer
 
             Player newhost = room.Players.First().Value;
 
+            newhost.IsHost = true;
+            room.Host = newhost;
+
             using (DarkRiftWriter SwapHostWriter = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room
@@ -606,8 +609,7 @@ namespace BrumeServer
                 }
             }
 
-            newhost.IsHost = true;
-            room.Host = newhost;
+
 
         }
 

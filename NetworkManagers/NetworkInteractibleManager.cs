@@ -274,7 +274,7 @@ namespace BrumeServer
 
             for (int i = 0; i < _IDList.Length; i++)
             {
-                brumeServer.rooms[roomID].SpawnObjPlayer(_IDList[i]);
+                brumeServer.rooms[roomID].SpawnObjPlayer(_IDList[i], true);
             }
         }
     }
