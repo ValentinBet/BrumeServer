@@ -24,6 +24,7 @@ namespace BrumeServer
         // <<
 
         public bool IsStarted = false;
+        public bool GameInit = false;
 
         public Room(ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
         {
@@ -50,6 +51,7 @@ namespace BrumeServer
 
         public void ResetGameData()
         {
+            GameInit = false;
             Altars.ResetAltars();
             Timers.StopTimersInstantly();
             champSelect.ResetData();
@@ -136,8 +138,11 @@ namespace BrumeServer
         }
 
 
-        public void PlayerJoinGameScene()
+        public void PlayerJoinGameScene() // Un joueur rejoint la scene de jeu
         {
+            if (GameInit)
+                return;
+
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
                 if (!(player.Value.IsInGameScene))
@@ -145,6 +150,8 @@ namespace BrumeServer
                     return;
                 }
             }
+
+            // Tout les joueurs sont prets
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
@@ -156,8 +163,9 @@ namespace BrumeServer
                     }
                 }
             }
-            champSelect.ResetData();
+            GameInit = true;
 
+            champSelect.ResetData();
             StartGameTimer();
             StartAltarTimer();
         }
@@ -166,7 +174,6 @@ namespace BrumeServer
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
             {
-
                 GameWriter.Write(ID);
 
                 using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
@@ -211,7 +218,6 @@ namespace BrumeServer
                 }
             }
         }
-
 
         public void SendMovement(object sender, MessageReceivedEventArgs e, float posX, float posZ, float rotaY)
         {
@@ -262,7 +268,7 @@ namespace BrumeServer
             }
         }
 
-        public void StartTimer()
+        public void StartTimer() // Timer local des joueurs
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
@@ -280,7 +286,7 @@ namespace BrumeServer
         public void StopGame()
         {
             ResetGameData();
-
+                          
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
                 player.Value.IsInGameScene = false;
@@ -301,6 +307,7 @@ namespace BrumeServer
         internal void NewRound(ushort team)
         {
             Timers.StopTimersInstantly();
+            GameInit = false;
 
             foreach (KeyValuePair<IClient, Player> player in Players)
             {

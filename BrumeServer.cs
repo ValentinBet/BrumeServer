@@ -340,17 +340,20 @@ namespace BrumeServer
 
             players[e.Client].IsReady = value;
 
-            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            if (players[e.Client].Room != null)
             {
-                // Recu par les joueurs déja présent dans la room
-
-                TeamWriter.Write(players[e.Client].ID);
-                TeamWriter.Write(value);
-
-                using (Message Message = Message.Create(Tags.SetReady, TeamWriter))
+                using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
                 {
-                    foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    // Recu par les joueurs déja présent dans la room
+
+                    TeamWriter.Write(players[e.Client].ID);
+                    TeamWriter.Write(value);
+
+                    using (Message Message = Message.Create(Tags.SetReady, TeamWriter))
+                    {
+                        foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
                 }
             }
         }
@@ -552,7 +555,7 @@ namespace BrumeServer
 
             room.Players.Remove(Eclient);
 
-            if (players[Eclient].IsInGameScene)
+            if (players[Eclient].IsInGameScene) // Si en game
             {
                 players[Eclient].IsInGameScene = false;
                 room.SupprPlayerObj(Eclient.ID);
