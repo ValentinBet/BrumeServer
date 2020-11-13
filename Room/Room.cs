@@ -250,8 +250,6 @@ namespace BrumeServer
         {
             using (Message message = e.GetMessage() as Message)
             {
-                using (DarkRiftReader reader = message.GetReader())
-
                 using (DarkRiftWriter writer = DarkRiftWriter.Create())
                 {
                     writer.Write(e.Client.ID);
@@ -268,7 +266,24 @@ namespace BrumeServer
                 }
             }
         }
+        internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, uint newDuration, uint newStrength, ushort targetId)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(newXDirection);
+                    writer.Write(newZDirection);
+                    writer.Write(newDuration);
+                    writer.Write(newStrength);
+                    writer.Write(targetId);
 
+                }
+
+                Players.Where(x => x.Key.ID == targetId).First().Key.SendMessage(message, e.SendMode);
+            }
+
+        }
         public void StartTimer() // Timer local des joueurs
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -469,6 +484,7 @@ namespace BrumeServer
             }
 
         }
+
 
     }
 }
