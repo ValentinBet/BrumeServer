@@ -406,6 +406,19 @@ namespace BrumeServer
             return true;
         }
 
+        public ushort? GetPlayerCharacterInTeam(Team team, Character character)
+        {
+            Player _player = Players.Values.Where(x => x.playerTeam == team && x.playerCharacter == character).FirstOrDefault();
+            ushort? _id = null;
+
+            if (_player != null)
+            {
+                _id =_player.ID;
+            }
+
+            return _id;
+        }
+
         #region Timers
         internal void StartNewFrogTimer(ushort frogID)
         {

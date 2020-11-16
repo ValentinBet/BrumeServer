@@ -53,6 +53,10 @@ namespace BrumeServer
                 {
                     ResurectPlayer(sender, e);
                 }
+                else if (message.Tag == Tags.AltarTrailDebuff)
+                {
+                    AltarTrailDebuff(sender, e);
+                }
             }
         }
 
@@ -277,5 +281,39 @@ namespace BrumeServer
                 brumeServer.rooms[roomID].SpawnObjPlayer(_IDList[i], true);
             }
         }
+
+        private void AltarTrailDebuff(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _ID = reader.ReadUInt16();
+
+                    Room _room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
+
+                    ushort? _targetId = _room.GetPlayerCharacterInTeam(Factory.GetOtherTeam(brumeServer.players[e.Client].playerTeam), Character.shili);
+
+                    if (_targetId == null)
+                    {
+                        return;
+                    }
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write((ushort)_targetId);
+
+                        using (Message Message = Message.Create(Tags.AltarTrailDebuff, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in _room.Players)
+                            {
+                                    client.Key.SendMessage(Message, SendMode.Unreliable);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
