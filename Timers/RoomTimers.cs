@@ -14,6 +14,7 @@ namespace BrumeServer
         private Room room;
 
         public NetworkTimer altarTimer;
+        public NetworkTimer gameInitTimer;
         public Stopwatch gameTimer;
 
         public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
@@ -22,6 +23,13 @@ namespace BrumeServer
         public RoomTimers(Room room)
         {
             this.room = room;
+
+            // GameInitTimer
+            gameInitTimer = new NetworkTimer
+            {
+                AutoReset = false
+            };
+            gameInitTimer.Elapsed += GameInitTimerElapsed;
 
             // AltarTimer
             altarTimer = new NetworkTimer
@@ -39,9 +47,12 @@ namespace BrumeServer
 
         public void StopTimersInstantly(bool finalize = false)
         {
+            gameInitTimer.Elapsed -= GameInitTimerElapsed;
             altarTimer.Elapsed -= AltarTimerElapsed;
-            gameTimer.Reset();
+            gameInitTimer.Enabled = false;
             altarTimer.Enabled = false;
+
+            gameTimer.Reset();
 
             foreach (KeyValuePair<NetworkTimer, ushort> timer in frogTemporaryTimers)
             {
@@ -67,8 +78,35 @@ namespace BrumeServer
 
         private void FinalizeTimer()
         {
+            gameInitTimer.Dispose();
             altarTimer.Dispose();
         }
+
+        public void StartGameInitTimer(float time = 1000)
+        {
+            if (gameInitTimer.Enabled)
+            {
+                throw new Exception("DEMANDE DE CREATION DE GameInitTimer AVANT LA FIN DU PRECEDENT");
+            }
+
+            gameInitTimer.Interval = time;
+
+            gameInitTimer.Enabled = true;
+        }
+
+        public double GetGameInitTimerRemainingTime()
+        {
+            return gameInitTimer.TimeLeft;
+        }
+
+        public void GameInitTimerElapsed(Object source, ElapsedEventArgs e)
+        {
+            room.GameInitTimerElapsed();
+            // + Event dans le NetworkTimer
+        }
+
+
+
 
         public void StartNewAltarTimer(float time = 1000)
         {
@@ -92,6 +130,8 @@ namespace BrumeServer
             room.AltarTimerElapsed();
             // + Event dans le NetworkTimer
         }
+
+
 
         public void StartNewGameStopWatch()
         {

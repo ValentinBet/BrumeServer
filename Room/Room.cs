@@ -116,7 +116,20 @@ namespace BrumeServer
 			return Players.Single(x => x.Key.ID == ID).Value;
 		}
 
-		public void StartGame ()
+		internal ushort? GetPlayerCharacterInTeam(Team team, Character character)
+		{
+			Player _tempPlayer = Players.Values.Where(x => x.playerTeam == team && x.playerCharacter == character).FirstOrDefault();
+
+            if (_tempPlayer != null)
+            {
+				return _tempPlayer.ID;
+            }
+
+			return null;
+		}
+
+
+        public void StartGame ()
 		{
 
 			foreach (KeyValuePair<IClient, Player> player in Players)
@@ -167,7 +180,7 @@ namespace BrumeServer
 
 			champSelect.ResetData();
 			StartGameTimer();
-			StartAltarTimer();
+			
 		}
 
 		public void SpawnObjPlayer ( ushort ID, bool resurect = false )
@@ -389,7 +402,14 @@ namespace BrumeServer
 		}
 
 		#region Timers
-		internal void StartNewFrogTimer ( ushort frogID )
+
+		internal void GameInitTimerElapsed()
+		{
+			StartAltarTimer();
+			UnlockAllVisionTowers();
+		}
+
+        internal void StartNewFrogTimer ( ushort frogID )
 		{
 			Timers.StartNewFrogTimer(frogID, GameData.FrogRespawnTime);
 		}
@@ -436,7 +456,7 @@ namespace BrumeServer
 
 		public void StartAltarTimer ()
 		{
-			Timers.StartNewAltarTimer(GameData.GameInitTIme);
+			Timers.StartNewAltarTimer(GameData.AltarLockTime);
 		}
 
 		public void AltarTimerElapsed ()
@@ -460,10 +480,29 @@ namespace BrumeServer
 		public void StartGameTimer ()
 		{
 			StartTimer();
+			Timers.StartGameInitTimer(GameData.GameInitTime);
 			Timers.StartNewGameStopWatch();
 		}
 
 		#endregion
+
+
+		private void UnlockAllVisionTowers()
+		{
+			using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+			{
+				// Recu par les joueurs déja présent dans la room
+
+				TeamWriter.Write((ushort)InteractibleType.VisionTower);
+
+				using (Message Message = Message.Create(Tags.UnlockAllInteractibleOfType, TeamWriter))
+				{
+					foreach (KeyValuePair<IClient, Player> client in Players)
+						client.Key.SendMessage(Message, SendMode.Reliable);
+				}
+			}
+		}
+
 
 		internal void TryPickCharacter ( Character character, IClient Iclient )
 		{
@@ -491,6 +530,5 @@ namespace BrumeServer
 
 		}
 
-
-	}
+    }
 }
