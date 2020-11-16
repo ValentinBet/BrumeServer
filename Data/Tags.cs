@@ -68,6 +68,10 @@
             //Ward & Vision 790 --> 799 >>
             public static readonly ushort LaunchWard = 790;
             public static readonly ushort StartWardLifeTime = 791;
+           // <<
+
+            //Buff 800 --> 810 >>
+            public static readonly ushort AltarTrailDebuff = 800;
             // <<
 
         public static readonly ushort SpawnObjPlayer = 1000;
