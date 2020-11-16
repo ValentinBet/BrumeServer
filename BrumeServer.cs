@@ -171,6 +171,10 @@ namespace BrumeServer
                 {
                     SendForcedMovement(sender, e);
                 }
+                else if (message.Tag == Tags.AddStatus)
+                {
+                    SendNewStatus(sender, e);
+                }
 
             }
         }
@@ -710,11 +714,32 @@ namespace BrumeServer
 
                     sbyte newXDirection = reader.ReadSByte();
                     sbyte newZDirection = reader.ReadSByte();
-                    uint newDuration = reader.ReadUInt16();
-                    uint newStrength = reader.ReadUInt16();
+                    ushort newDuration = reader.ReadUInt16();
+                    ushort newStrength = reader.ReadUInt16();
+
                     ushort targetId = reader.ReadUInt16();
 
+                    Log.Message("Recu" + targetId);
+
                     rooms[_roomId].SendForcedMovemment(sender, e, newXDirection, newZDirection, newDuration, newStrength, targetId);
+                }
+            }
+        }
+
+
+        private void SendNewStatus ( object sender, MessageReceivedEventArgs e )
+        {
+            ushort _roomId;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _roomId = reader.ReadUInt16();
+
+                    ushort newStatus = reader.ReadUInt16();
+
+                    rooms[_roomId].SendStatus(sender, e, newStatus);
                 }
             }
         }

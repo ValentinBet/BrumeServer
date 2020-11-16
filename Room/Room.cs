@@ -266,7 +266,7 @@ namespace BrumeServer
                 }
             }
         }
-        internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, uint newDuration, uint newStrength, ushort targetId)
+        internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -279,11 +279,34 @@ namespace BrumeServer
                     writer.Write(targetId);
 
                 }
-
-                Players.Where(x => x.Key.ID == targetId).First().Key.SendMessage(message, e.SendMode);
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (client.Key.ID == targetId) { client.Key.SendMessage(message, e.SendMode); return; }
+                }
             }
 
         }
+        public void SendStatus ( object sender, MessageReceivedEventArgs e, uint _statusToSend )
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(e.Client.ID);
+
+                    writer.Write(_statusToSend);
+
+                    message.Serialize(writer);
+                }
+
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+                    client.Key.SendMessage(message, e.SendMode);
+                }
+            }
+        }
+        
         public void StartTimer() // Timer local des joueurs
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
