@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
+    <Compile Include="Factory.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Room\ChampSelect.cs" />
     <Compile Include="NetworkManagers\NetworkAnimationManager.cs" />
