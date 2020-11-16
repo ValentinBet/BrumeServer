@@ -719,7 +719,6 @@ namespace BrumeServer
 
                     ushort targetId = reader.ReadUInt16();
 
-                    Log.Message("Recu" + targetId);
 
                     rooms[_roomId].SendForcedMovemment(sender, e, newXDirection, newZDirection, newDuration, newStrength, targetId);
                 }
