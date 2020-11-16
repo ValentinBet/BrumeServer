@@ -111,7 +111,7 @@ namespace BrumeServer
 			e.Writer.Write((ushort)Players.Count); // LocalOnly
 		}
 
-		public Player FindPlayerByID ( ushort ID )
+		public Player GetPlayerByID ( ushort ID )
 		{
 			return Players.Single(x => x.Key.ID == ID).Value;
 		}
@@ -185,23 +185,6 @@ namespace BrumeServer
 					}
 				}
 			}
-
-			////Spawn Old Players
-			//using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
-			//{
-			//    foreach (KeyValuePair<IClient, Player> client in Players)
-			//    {
-			//        if (e.Client == client.Key) { continue; }
-
-			//        ushort ID = client.Key.ID;
-			//        GameWriter.Write(ID);
-
-			//        using (Message Message = Message.Create(Tags.SpawnObjPlayer, GameWriter))
-			//        {
-			//            e.Client.SendMessage(Message, SendMode.Reliable);
-			//        }
-			//    }
-			//}
 		}
 
 		public void SupprPlayerObj ( ushort ID )
@@ -275,7 +258,6 @@ namespace BrumeServer
 				writer.Write(newDuration);
 				writer.Write(newStrength);
 				writer.Write(targetId);
-				Log.Message("duration" + newDuration);
 
 				using (Message Message = Message.Create(Tags.AddForcedMovement, writer))
 				{
@@ -454,7 +436,7 @@ namespace BrumeServer
 
 		public void StartAltarTimer ()
 		{
-			Timers.StartNewAltarTimer(GameData.AltarLockTime);
+			Timers.StartNewAltarTimer(GameData.GameInitTIme);
 		}
 
 		public void AltarTimerElapsed ()
