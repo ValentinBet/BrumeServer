@@ -284,6 +284,27 @@ namespace BrumeServer
             }
 
         }
+        public void SendStatus ( object sender, MessageReceivedEventArgs e, uint _statusToSend )
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(e.Client.ID);
+
+                    writer.Write(_statusToSend);
+
+                    message.Serialize(writer);
+                }
+
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+                    client.Key.SendMessage(message, e.SendMode);
+                }
+            }
+        }
+        
         public void StartTimer() // Timer local des joueurs
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
