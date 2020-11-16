@@ -82,8 +82,6 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     ushort _id = reader.ReadUInt16();
-                    string XvalueName = reader.ReadString();
-                    string YvalueName = reader.ReadString();
                     byte Xvalue = reader.ReadByte();
                     byte Yvalue = reader.ReadByte();
 
@@ -92,15 +90,18 @@ namespace BrumeServer
                         // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
 
                         TeamWriter.Write(_id);
-                        TeamWriter.Write(XvalueName);
-                        TeamWriter.Write(YvalueName);
                         TeamWriter.Write(Xvalue);
                         TeamWriter.Write(Yvalue);
 
                         using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
-                                client.Key.SendMessage(Message, e.SendMode);
+                            {
+                                if (brumeServer.rooms[brumeServer.players[e.Client].Room.ID].CheckSendPlayerAnim(client.Value.ID, _id))
+                                {
+                                    client.Key.SendMessage(Message, e.SendMode);
+                                }
+                            }     
                         }
                     }
                 }
