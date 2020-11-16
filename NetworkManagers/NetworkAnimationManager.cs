@@ -73,8 +73,6 @@ namespace BrumeServer
 
         }
 
-
-
         private void Sync2DBlendTree(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -97,7 +95,7 @@ namespace BrumeServer
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                             {
-                                if (brumeServer.rooms[brumeServer.players[e.Client].Room.ID].CheckSendPlayerAnim(client.Value.ID, _id))
+                                if (Factory.CheckSendPlayerAnim(brumeServer.rooms[brumeServer.players[e.Client].Room.ID], client.Value.ID, _id))
                                 {
                                     client.Key.SendMessage(Message, e.SendMode);
                                 }

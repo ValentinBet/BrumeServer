@@ -521,19 +521,5 @@ namespace BrumeServer
             }
 
         }
-
-        public bool CheckSendPlayerAnim(ushort idPlayer1, ushort idPlayer2)
-        {
-            Vector2 posPlayer1 = new Vector2(GetPlayerByID(idPlayer1).X, GetPlayerByID(idPlayer1).Z);
-            Vector2 posPlayer2 = new Vector2(GetPlayerByID(idPlayer2).X, GetPlayerByID(idPlayer2).Z);
-
-            Console.WriteLine(Vector2.Distance(posPlayer1, posPlayer2));
-
-            if (Vector2.Distance(posPlayer1, posPlayer2) > 10)
-            {
-                return false;
-            }
-            return true;
-        }
     }
 }

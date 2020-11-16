@@ -2,7 +2,6 @@ C:\Users\s.arachtingi\Documents\BrumeServ\bin\Debug\BrumeServer.dll
 C:\Users\s.arachtingi\Documents\BrumeServ\bin\Debug\BrumeServer.pdb
 C:\Users\s.arachtingi\Documents\BrumeServ\bin\Debug\DarkRift.dll
 C:\Users\s.arachtingi\Documents\BrumeServ\bin\Debug\DarkRift.Server.dll
-C:\Users\s.arachtingi\Documents\BrumeServ\obj\Debug\BrumeServer.csprojAssemblyReference.cache
 C:\Users\s.arachtingi\Documents\BrumeServ\obj\Debug\BrumeServer.csproj.CoreCompileInputs.cache
 C:\Users\s.arachtingi\Documents\BrumeServ\obj\Debug\BrumeServer.csproj.CopyComplete
 C:\Users\s.arachtingi\Documents\BrumeServ\obj\Debug\BrumeServer.dll
