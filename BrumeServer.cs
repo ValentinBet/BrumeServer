@@ -714,10 +714,12 @@ namespace BrumeServer
 
                     sbyte newXDirection = reader.ReadSByte();
                     sbyte newZDirection = reader.ReadSByte();
-                    uint newDuration = reader.ReadUInt16();
-                    uint newStrength = reader.ReadUInt16();
+                    ushort newDuration = reader.ReadUInt16();
+                    ushort newStrength = reader.ReadUInt16();
 
                     ushort targetId = reader.ReadUInt16();
+
+                    Log.Message("Recu" + targetId);
 
                     rooms[_roomId].SendForcedMovemment(sender, e, newXDirection, newZDirection, newDuration, newStrength, targetId);
                 }

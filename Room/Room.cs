@@ -266,7 +266,7 @@ namespace BrumeServer
                 }
             }
         }
-        internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, uint newDuration, uint newStrength, ushort targetId)
+        internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -279,8 +279,10 @@ namespace BrumeServer
                     writer.Write(targetId);
 
                 }
-
-                Players.Where(x => x.Key.ID == targetId).First().Key.SendMessage(message, e.SendMode);
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (client.Key.ID == targetId) { client.Key.SendMessage(message, e.SendMode); return; }
+                }
             }
 
         }
