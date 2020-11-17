@@ -298,24 +298,21 @@ namespace BrumeServer
 			}
 		}
 
-		public void SendStatus ( object sender, MessageReceivedEventArgs e, uint _statusToSend )
+		public void SendStatus ( object sender, MessageReceivedEventArgs e, ushort _statusToSend , ushort playerTargeted)
 		{
-			using (Message message = e.GetMessage() as Message)
-			{
 				using (DarkRiftWriter writer = DarkRiftWriter.Create())
 				{
 					writer.Write(e.Client.ID);
-
 					writer.Write(_statusToSend);
+					writer.Write(playerTargeted);
 
-					message.Serialize(writer);
-				}
-
-				foreach (KeyValuePair<IClient, Player> client in Players)
-				{
-					if (e.Client == client.Key) { continue; }
-					client.Key.SendMessage(message, e.SendMode);
-				}
+					using (Message Message = Message.Create(Tags.AddStatus, writer))
+					{
+						foreach (KeyValuePair<IClient, Player> client in Players)
+						{
+							client.Key.SendMessage(Message, e.SendMode);
+						}
+					}
 			}
 		}
 

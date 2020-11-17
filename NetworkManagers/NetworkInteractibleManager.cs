@@ -334,7 +334,7 @@ namespace BrumeServer
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
-                        using (Message Message = Message.Create(Tags.AltarTrailDebuff, Writer))
+                        using (Message Message = Message.Create(Tags.AltarSpeedBuff, Writer))
                         {
                             foreach (KeyValuePair<IClient, Player> client in _room.Players)
                             {
