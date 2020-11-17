@@ -80,6 +80,8 @@
         public static readonly ushort StateUpdate = 2570;
         public static readonly ushort AddForcedMovement = 2580;
         public static readonly ushort AddStatus = 2590;
+        //SPELLS CHARACTER
+        public static readonly ushort LaunchSplouch = 2600;
         // <<
     }
 }
