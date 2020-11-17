@@ -57,6 +57,10 @@ namespace BrumeServer
                 {
                     AltarTrailDebuff(sender, e);
                 }
+                else if (message.Tag == Tags.LaunchSplouch)
+                {
+                    LaunchSplouch(sender, e);
+                }
             }
         }
 
@@ -198,9 +202,7 @@ namespace BrumeServer
                 }
             }
         }
-
-
-        private void LaunchWard(object sender, MessageReceivedEventArgs e)
+        private void LaunchWard ( object sender, MessageReceivedEventArgs e )
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -234,7 +236,6 @@ namespace BrumeServer
                 }
             }
         }
-
         private void StartWardLifeTime(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -315,5 +316,39 @@ namespace BrumeServer
             }
         }
 
+        private void LaunchSplouch ( object sender, MessageReceivedEventArgs e )
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _ID = reader.ReadUInt16();
+
+                    float x = reader.ReadSingle();
+                    float y = reader.ReadSingle();
+                    float z = reader.ReadSingle();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_ID);
+
+                        Writer.Write(x);
+                        Writer.Write(y);
+                        Writer.Write(z);
+
+                        using (Message Message = Message.Create(Tags.LaunchSplouch, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key != e.Client)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

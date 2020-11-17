@@ -116,20 +116,20 @@ namespace BrumeServer
 			return Players.Single(x => x.Key.ID == ID).Value;
 		}
 
-		internal ushort? GetPlayerCharacterInTeam(Team team, Character character)
+		internal ushort? GetPlayerCharacterInTeam ( Team team, Character character )
 		{
 			Player _tempPlayer = Players.Values.Where(x => x.playerTeam == team && x.playerCharacter == character).FirstOrDefault();
 
-            if (_tempPlayer != null)
-            {
+			if (_tempPlayer != null)
+			{
 				return _tempPlayer.ID;
-            }
+			}
 
 			return null;
 		}
 
 
-        public void StartGame ()
+		public void StartGame ()
 		{
 
 			foreach (KeyValuePair<IClient, Player> player in Players)
@@ -180,7 +180,7 @@ namespace BrumeServer
 
 			champSelect.ResetData();
 			StartGameTimer();
-			
+
 		}
 
 		public void SpawnObjPlayer ( ushort ID, bool resurect = false )
@@ -282,23 +282,22 @@ namespace BrumeServer
 			}
 		}
 
-		public void SendStatus ( object sender, MessageReceivedEventArgs e, uint _statusToSend )
+		public void SendStatus ( object sender, MessageReceivedEventArgs e, ushort _statusToSend, ushort _playerTargeted )
 		{
-			using (Message message = e.GetMessage() as Message)
+			using (DarkRiftWriter writer = DarkRiftWriter.Create())
 			{
-				using (DarkRiftWriter writer = DarkRiftWriter.Create())
+				writer.Write(e.Client.ID);
+
+				writer.Write(_statusToSend);
+
+				writer.Write(_playerTargeted);
+
+				using (Message Message = Message.Create(Tags.AddStatus, writer))
 				{
-					writer.Write(e.Client.ID);
-
-					writer.Write(_statusToSend);
-
-					message.Serialize(writer);
-				}
-
-				foreach (KeyValuePair<IClient, Player> client in Players)
-				{
-					if (e.Client == client.Key) { continue; }
-					client.Key.SendMessage(message, e.SendMode);
+					foreach (KeyValuePair<IClient, Player> client in Players)
+					{
+						client.Key.SendMessage(Message, e.SendMode);
+					}
 				}
 			}
 		}
@@ -403,13 +402,13 @@ namespace BrumeServer
 
 		#region Timers
 
-		internal void GameInitTimerElapsed()
+		internal void GameInitTimerElapsed ()
 		{
 			StartAltarTimer();
 			UnlockAllVisionTowers();
 		}
 
-        internal void StartNewFrogTimer ( ushort frogID )
+		internal void StartNewFrogTimer ( ushort frogID )
 		{
 			Timers.StartNewFrogTimer(frogID, GameData.FrogRespawnTime);
 		}
@@ -487,7 +486,7 @@ namespace BrumeServer
 		#endregion
 
 
-		private void UnlockAllVisionTowers()
+		private void UnlockAllVisionTowers ()
 		{
 			using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
 			{
@@ -530,5 +529,5 @@ namespace BrumeServer
 
 		}
 
-    }
+	}
 }

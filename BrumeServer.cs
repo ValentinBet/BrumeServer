@@ -738,7 +738,9 @@ namespace BrumeServer
 
                     ushort newStatus = reader.ReadUInt16();
 
-                    rooms[_roomId].SendStatus(sender, e, newStatus);
+                    ushort playerTargeted = reader.ReadUInt16();
+
+                    rooms[_roomId].SendStatus(sender, e, newStatus, playerTargeted);
                 }
             }
         }
