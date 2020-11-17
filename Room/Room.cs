@@ -116,6 +116,22 @@ namespace BrumeServer
 			return Players.Single(x => x.Key.ID == ID).Value;
 		}
 
+		public Dictionary<IClient, Player> GetPlayerListInTeam(Team team)
+        {
+			Dictionary<IClient, Player> _temp = new Dictionary<IClient, Player>();
+
+			foreach (KeyValuePair<IClient, Player> p in Players)
+            {
+                if (p.Value.playerTeam == team)
+                {
+					_temp.Add(p.Key, p.Value);
+                }
+            }
+
+			return _temp;
+        }
+
+
 		internal ushort? GetPlayerCharacterInTeam(Team team, Character character)
 		{
 			Player _tempPlayer = Players.Values.Where(x => x.playerTeam == team && x.playerCharacter == character).FirstOrDefault();

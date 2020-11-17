@@ -57,6 +57,11 @@ namespace BrumeServer
                 {
                     AltarTrailDebuff(sender, e);
                 }
+                else if (message.Tag == Tags.AltarSpeedBuff)
+                {
+                    AltarSpeedBuff(sender, e);
+                }
+
             }
         }
 
@@ -314,6 +319,37 @@ namespace BrumeServer
                 }
             }
         }
+
+        private void AltarSpeedBuff(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    Team _team = (Team)reader.ReadUInt16();
+
+                    Room _room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
+
+                    Dictionary<IClient, Player> _temp = _room.GetPlayerListInTeam(_team);
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        using (Message Message = Message.Create(Tags.AltarTrailDebuff, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in _room.Players)
+                            {
+                                if (_temp.ContainsKey(client.Key))
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Unreliable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
 
     }
 }
