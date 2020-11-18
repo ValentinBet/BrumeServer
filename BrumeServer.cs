@@ -30,19 +30,18 @@ namespace BrumeServer
         private NetworkAnimationManager networkAnimationManager = new NetworkAnimationManager();
         private NetworkObjectsManager networkObjectsManager = new NetworkObjectsManager();
         private NetworkInteractibleManager networkInteractibleManager = new NetworkInteractibleManager();
-
-
+        private NetworkSpellManager networkSpellManager = new NetworkSpellManager();
 
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
             networkAnimationManager.brumeServer = this;
             networkObjectsManager.brumeServer = this;
             networkInteractibleManager.brumeServer = this;
+            networkSpellManager.brumeServer = this;
 
             ClientManager.ClientConnected += OnClientConnected;
             ClientManager.ClientDisconnected += OnClientDisconnected;
         }
-
 
         protected override void Dispose(bool disposing)
         {
@@ -75,6 +74,7 @@ namespace BrumeServer
             e.Client.MessageReceived += networkAnimationManager.MessageReceivedFromClient;
             e.Client.MessageReceived += networkObjectsManager.MessageReceivedFromClient;
             e.Client.MessageReceived += networkInteractibleManager.MessageReceivedFromClient;
+            e.Client.MessageReceived += networkSpellManager.MessageReceivedFromClient;
             e.Client.MessageReceived += MessageReceivedFromClient;
         }
 
@@ -91,6 +91,7 @@ namespace BrumeServer
             e.Client.MessageReceived -= networkAnimationManager.MessageReceivedFromClient;
             e.Client.MessageReceived -= networkObjectsManager.MessageReceivedFromClient;
             e.Client.MessageReceived -= networkInteractibleManager.MessageReceivedFromClient;
+            e.Client.MessageReceived -= networkSpellManager.MessageReceivedFromClient;
             e.Client.MessageReceived -= MessageReceivedFromClient;
         }
 
@@ -159,6 +160,10 @@ namespace BrumeServer
                 {
                     TakeDamages(sender, e);
                 }
+                else if (message.Tag == Tags.Heal)
+                {
+                    Heal(sender, e);
+                }
                 else if (message.Tag == Tags.KillCharacter)
                 {
                     KillCharacter(sender, e);
@@ -174,10 +179,6 @@ namespace BrumeServer
                 else if (message.Tag == Tags.AddStatus)
                 {
                     SendNewStatus(sender, e);
-                }
-                else if (message.Tag == Tags.LaunchSplouch)
-                {
-                    LaunchSplouch(sender, e);
                 }
             }
         }
@@ -280,6 +281,35 @@ namespace BrumeServer
             }
         }
 
+
+        private void Heal(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _targetID = reader.ReadUInt16();
+                    ushort _healValue = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_targetID);
+                        Writer.Write(_healValue);
+
+                        using (Message Message = Message.Create(Tags.Heal, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key != e.Client)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         private void ChangeName(object sender, MessageReceivedEventArgs e)
         {
@@ -749,40 +779,6 @@ namespace BrumeServer
         }
         #endregion
 
-        private void LaunchSplouch ( object sender, MessageReceivedEventArgs e )
-        {
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    ushort _ID = reader.ReadUInt16();
-
-                    float x = reader.ReadSingle();
-                    float y = reader.ReadSingle();
-                    float z = reader.ReadSingle();
-
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_ID);
-
-                        Writer.Write(x);
-                        Writer.Write(y);
-                        Writer.Write(z);
-
-                        using (Message Message = Message.Create(Tags.LaunchSplouch, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
         #region Game
         private void LobbyStartGame(object sender, MessageReceivedEventArgs e)
         {

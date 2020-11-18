@@ -40,10 +40,9 @@
         public static readonly ushort SynchroniseObject = 510;
         public static readonly ushort DestroyObject = 515;
         public static readonly ushort Damages = 520;
+        public static readonly ushort Heal = 522;
         public static readonly ushort AddPoints = 550;
         public static readonly ushort KillCharacter = 560;
-
-
 
             //Anim 750 --> 769 >>
             public static readonly ushort SyncTrigger = 750;
@@ -71,7 +70,13 @@
             //Buff 800 --> 810 >>
             public static readonly ushort AltarTrailDebuff = 800;
             public static readonly ushort AltarSpeedBuff = 802;
+            public static readonly ushort AltarPoisonBuff = 804;
             // <<
+
+            //Spells 810 --> XXX >>
+            public static readonly ushort CurveSpellLaunch = 900;
+            public static readonly ushort CurveSpellLanded = 901;
+            //<<
 
         public static readonly ushort SpawnObjPlayer = 1000;
         public static readonly ushort MovePlayerTag = 1010;
@@ -80,6 +85,7 @@
         public static readonly ushort StateUpdate = 2570;
         public static readonly ushort AddForcedMovement = 2580;
         public static readonly ushort AddStatus = 2590;
+
         //SPELLS CHARACTER
         public static readonly ushort LaunchSplouch = 2600;
         // <<

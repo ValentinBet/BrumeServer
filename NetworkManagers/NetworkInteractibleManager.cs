@@ -60,11 +60,14 @@ namespace BrumeServer
                 else if (message.Tag == Tags.AltarSpeedBuff)
                 {
                     AltarSpeedBuff(sender, e);
+                }                
+                else if (message.Tag == Tags.AltarPoisonBuff)
+                {
+                    AltarPoisonBuff(sender, e);
                 }
 
             }
         }
-
         private void UnlockInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -340,7 +343,7 @@ namespace BrumeServer
                             {
                                 if (_temp.ContainsKey(client.Key))
                                 {
-                                    client.Key.SendMessage(Message, SendMode.Unreliable);
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
                                 }
                             }
                         }
@@ -349,6 +352,35 @@ namespace BrumeServer
             }
         }
 
+
+        private void AltarPoisonBuff(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    Team _team = (Team)reader.ReadUInt16();
+
+                    Room _room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
+
+                    Dictionary<IClient, Player> _temp = _room.GetPlayerListInTeam(_team);
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        using (Message Message = Message.Create(Tags.AltarPoisonBuff, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in _room.Players)
+                            {
+                                if (_temp.ContainsKey(client.Key))
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 
     }
