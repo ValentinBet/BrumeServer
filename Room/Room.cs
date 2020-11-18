@@ -258,25 +258,22 @@ namespace BrumeServer
 			}
 		}
 
-		public void SendState ( object sender, MessageReceivedEventArgs e, uint _state )
+		public void SendState ( object sender, MessageReceivedEventArgs e, ushort _state )
 		{
-			using (Message message = e.GetMessage() as Message)
-			{
 				using (DarkRiftWriter writer = DarkRiftWriter.Create())
 				{
 					writer.Write(e.Client.ID);
-
 					writer.Write(_state);
 
-					message.Serialize(writer);
+					using (Message Message = Message.Create(Tags.StateUpdate, writer))
+					{
+						foreach (KeyValuePair<IClient, Player> client in Players)
+						{
+							if (e.Client == client.Key) { continue; }
+							client.Key.SendMessage(Message, e.SendMode);
+						}
+					}
 				}
-
-				foreach (KeyValuePair<IClient, Player> client in Players)
-				{
-					if (e.Client == client.Key) { continue; }
-					client.Key.SendMessage(message, e.SendMode);
-				}
-			}
 		}
 		internal void SendForcedMovemment ( object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId )
 		{
