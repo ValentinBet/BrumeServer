@@ -52,6 +52,7 @@
     <Compile Include="BrumeServer.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="NetworkManagers\NetworkSpellManager.cs" />
     <Compile Include="Room\ChampSelect.cs" />
     <Compile Include="NetworkManagers\NetworkAnimationManager.cs" />
     <Compile Include="NetworkManagers\NetworkInteractibleManager.cs" />
