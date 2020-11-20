@@ -47,8 +47,7 @@ namespace BrumeServer
 
         public void StopTimersInstantly(bool finalize = false)
         {
-            gameInitTimer.Elapsed -= GameInitTimerElapsed;
-            altarTimer.Elapsed -= AltarTimerElapsed;
+
             gameInitTimer.Enabled = false;
             altarTimer.Enabled = false;
 
@@ -78,6 +77,9 @@ namespace BrumeServer
 
         private void FinalizeTimer()
         {
+            gameInitTimer.Elapsed -= GameInitTimerElapsed;
+            altarTimer.Elapsed -= AltarTimerElapsed;
+
             gameInitTimer.Dispose();
             altarTimer.Dispose();
         }

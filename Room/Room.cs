@@ -377,6 +377,8 @@ namespace BrumeServer
 						client.Key.SendMessage(Message, SendMode.Reliable);
 				}
 			}
+
+
 		}
 
 		public void Addpoints ( ushort targetTeam, ushort value )
