@@ -1,4 +1,5 @@
 ﻿using DarkRift;
+using DarkRift.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -53,5 +54,6 @@ namespace BrumeServer
             X = newX;
             Z = newZ;
         }
+
     }
 }

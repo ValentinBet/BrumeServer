@@ -21,10 +21,12 @@ namespace BrumeServer
 		public ChampSelect champSelect;
 		// InGame >>
 		public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
+		public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
 		// <<
 
 		public bool IsStarted = false;
 		public bool GameInit = false;
+
 
 		public Room ( ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6 )
 		{
@@ -56,6 +58,7 @@ namespace BrumeServer
 			Timers.StopTimersInstantly();
 			champSelect.ResetData();
 			Scores.Clear();
+			InGameUniqueIDList.Clear();
 
 			Scores.Add(Team.blue, 0);
 			Scores.Add(Team.red, 0);
@@ -147,11 +150,12 @@ namespace BrumeServer
 
         public void StartGame ()
 		{
-
 			foreach (KeyValuePair<IClient, Player> player in Players)
 			{
 				player.Value.IsReady = false;
 			}
+
+			SetAndSendInGameUniqueIDs();
 
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
@@ -180,7 +184,7 @@ namespace BrumeServer
 				}
 			}
 
-			// Tout les joueurs sont prets
+			// Tout les joueurs sont prets à jouer
 
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
@@ -195,8 +199,7 @@ namespace BrumeServer
 			GameInit = true;
 
 			champSelect.ResetData();
-			StartGameTimer();
-			
+			StartGameTimer();		
 		}
 
 		public void SpawnObjPlayer ( ushort ID, bool resurect = false )
@@ -542,5 +545,33 @@ namespace BrumeServer
 
 		}
 
-    }
+		internal void SetAndSendInGameUniqueIDs()
+		{
+			using (DarkRiftWriter writer = DarkRiftWriter.Create())
+			{
+				ushort uniqueID = 0;
+				List<ushort> playerID = new List<ushort>();
+
+				foreach (KeyValuePair <IClient,Player> player in Players)
+                {
+					playerID.Add(player.Key.ID);
+
+					uniqueID++;
+					InGameUniqueIDList.Add(player.Key.ID, uniqueID);
+				}
+
+				writer.Write(playerID.ToArray());
+
+				using (Message message = Message.Create(Tags.SetInGameUniqueID, writer))
+                {
+					foreach (KeyValuePair<IClient, Player> client in Players)
+						client.Key.SendMessage(message, SendMode.Reliable);
+				}
+
+			}
+		}
+
+
+
+	}
 }

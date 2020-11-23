@@ -33,6 +33,7 @@
         // InGame 300 --> XXXX >>   
         public static readonly ushort PlayerJoinGameScene = 300;
         public static readonly ushort AllPlayerJoinGameScene = 301;
+        public static readonly ushort SetInGameUniqueID = 302;
         public static readonly ushort StartTimer = 305;
         public static readonly ushort StopGame = 310;
         public static readonly ushort NewRound = 315;

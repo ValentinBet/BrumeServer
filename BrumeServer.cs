@@ -234,7 +234,7 @@ namespace BrumeServer
                     }
 
                     Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
-                    networkObjectsManager.InstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
+                    networkObjectsManager.ServerInstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {

@@ -11,8 +11,6 @@ namespace BrumeServer
 {
     public sealed class NetworkObjectsManager
     {
-        private ushort LastNetworkedObjectID = 0;
-
         public BrumeServer brumeServer;
 
         private static readonly NetworkObjectsManager instance;
@@ -25,6 +23,8 @@ namespace BrumeServer
         public NetworkObjectsManager()
         {
         }
+
+        public ushort lastObjUniqueID = 0;
 
         internal void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)
         {
@@ -76,6 +76,7 @@ namespace BrumeServer
                 {
                     ushort _ownerID = reader.ReadUInt16();
                     ushort _objectID = reader.ReadUInt16();
+                    ushort _uniqueID = reader.ReadUInt16();
 
                     float _ObjectPosx = reader.ReadSingle();
                     float _ObjectPosy = reader.ReadSingle();
@@ -89,7 +90,7 @@ namespace BrumeServer
                     {
                         writer.Write(_ownerID);
                         writer.Write(_objectID);
-
+                        writer.Write(_uniqueID);
                         writer.Write(_ObjectPosx);
                         writer.Write(_ObjectPosy);
                         writer.Write(_ObjectPosz);
@@ -98,27 +99,45 @@ namespace BrumeServer
                         writer.Write(_ObjectRotationy);
                         writer.Write(_ObjectRotationz);
 
-                        LastNetworkedObjectID += 1; // UNIQUE ID
-                        writer.Write(LastNetworkedObjectID);
 
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
-                                client.Key.SendMessage(MessageW, SendMode.Reliable);
+                            {
+                                if (client.Key.ID == e.Client.ID)
+                                {
+                                    return;
+                                }
+                                else
+                                {
+                                    client.Key.SendMessage(MessageW, SendMode.Reliable);
+                                }
+
+                            }
+
                         }
                     }
                 }
             }
         }
 
+        public ushort GenerateUniqueObjID()
+        {
+            int _temp = 0;
+            lastObjUniqueID++;
+            _temp = (lastObjUniqueID * 10);
 
-        public void InstantiateObject(IClient Iclient, ushort objectID, Vector3 objPos, Vector3 objRot)
+            return (ushort)_temp;
+        }
+
+        public void ServerInstantiateObject(IClient Iclient, ushort objectID, Vector3 objPos, Vector3 objRot)
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
                 writer.Write(Iclient.ID);
                 writer.Write(objectID);
+                writer.Write(GenerateUniqueObjID());
 
                 writer.Write(objPos.X);
                 writer.Write(objPos.Y);
@@ -127,9 +146,6 @@ namespace BrumeServer
                 writer.Write(objRot.X);
                 writer.Write(objRot.Y);
                 writer.Write(objRot.Z);
-
-                LastNetworkedObjectID += 1; // UNIQUE ID
-                writer.Write(LastNetworkedObjectID);
 
                 using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                 {
