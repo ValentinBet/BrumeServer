@@ -42,7 +42,6 @@ namespace BrumeServer
                 {
                     DestroyObject(sender, e);
                 }
-
             }
         }
 
@@ -79,7 +78,6 @@ namespace BrumeServer
                     ushort _uniqueID = reader.ReadUInt16();
 
                     float _ObjectPosx = reader.ReadSingle();
-                    float _ObjectPosy = reader.ReadSingle();
                     float _ObjectPosz = reader.ReadSingle();
 
                     float _ObjectRotationx = reader.ReadSingle();
@@ -91,8 +89,8 @@ namespace BrumeServer
                         writer.Write(_ownerID);
                         writer.Write(_objectID);
                         writer.Write(_uniqueID);
+
                         writer.Write(_ObjectPosx);
-                        writer.Write(_ObjectPosy);
                         writer.Write(_ObjectPosz);
 
                         writer.Write(_ObjectRotationx);
@@ -107,13 +105,10 @@ namespace BrumeServer
                             {
                                 if (client.Key.ID == e.Client.ID)
                                 {
-                                    return;
+                                    continue;
                                 }
-                                else
-                                {
-                                    client.Key.SendMessage(MessageW, SendMode.Reliable);
-                                }
-
+                                client.Key.SendMessage(MessageW, SendMode.Reliable);
+                                
                             }
 
                         }
@@ -140,7 +135,6 @@ namespace BrumeServer
                 writer.Write(GenerateUniqueObjID());
 
                 writer.Write(objPos.X);
-                writer.Write(objPos.Y);
                 writer.Write(objPos.Z);
 
                 writer.Write(objRot.X);
@@ -157,6 +151,8 @@ namespace BrumeServer
 
         private void SynchroniseObject(object sender, MessageReceivedEventArgs e)
         {
+            float _ObjectPosx = 0;
+            float _ObjectPosz = 0;
             float _ObjectRotationx = 0;
             float _ObjectRotationy = 0;
             float _ObjectRotationz = 0;
@@ -167,9 +163,13 @@ namespace BrumeServer
                 {
                     ushort _serverID = reader.ReadUInt16();
 
-                    float _ObjectPosx = reader.ReadSingle();
-                    float _ObjectPosy = reader.ReadSingle();
-                    float _ObjectPosz = reader.ReadSingle();
+                    bool _syncPos = reader.ReadBoolean();
+
+                    if (_syncPos)
+                    {
+                        _ObjectPosx = reader.ReadSingle();
+                        _ObjectPosz = reader.ReadSingle();
+                    }
 
                     bool _syncRot = reader.ReadBoolean();
 
@@ -184,9 +184,13 @@ namespace BrumeServer
                     {
                         writer.Write(_serverID);
 
-                        writer.Write(_ObjectPosx);
-                        writer.Write(_ObjectPosy);
-                        writer.Write(_ObjectPosz);
+                        writer.Write(_syncPos);
+
+                        if (_syncPos)
+                        {
+                            writer.Write(_ObjectPosx);
+                            writer.Write(_ObjectPosz);
+                        }
 
                         writer.Write(_syncRot);
 
@@ -199,8 +203,16 @@ namespace BrumeServer
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.SynchroniseObject, writer))
                         {
-                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key.ID == e.Client.ID)
+                                {
+                                    continue;
+                                }
+
                                 client.Key.SendMessage(MessageW, SendMode.Unreliable);
+                            }
+ 
                         }
                     }
                 }
