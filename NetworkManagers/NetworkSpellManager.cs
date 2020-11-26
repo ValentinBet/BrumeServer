@@ -38,7 +38,7 @@ namespace BrumeServer
                 }
                 else if (message.Tag == Tags.ChangeFowSize)
                 {
-                    CurveSpellLanded(sender, e);
+                    ChangeFowSize(sender, e);
                 }
             }
         }
@@ -111,7 +111,7 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _ID = reader.ReadUInt16();
+                    ushort _ID = e.Client.ID;
                     uint _size = reader.ReadUInt32();
                     bool _reset = reader.ReadBoolean();
 
@@ -121,7 +121,7 @@ namespace BrumeServer
                         Writer.Write(_size);
                         Writer.Write(_reset);
 
-                        using (Message Message = Message.Create(Tags.CurveSpellLanded, Writer))
+                        using (Message Message = Message.Create(Tags.ChangeFowSize, Writer))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].GetPlayerListInTeam(brumeServer.players[e.Client].playerTeam))
                             {
