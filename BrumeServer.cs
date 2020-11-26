@@ -220,11 +220,9 @@ namespace BrumeServer
                         {
                             case Team.red:
                                 rooms[_roomID].NewRound((ushort)Team.blue);
-                                AddPoints(_roomID, (ushort)Team.blue, 1);
                                 break;
                             case Team.blue:
                                 rooms[_roomID].NewRound((ushort)Team.red);
-                                AddPoints(_roomID, (ushort)Team.red, 1);
                                 break;
                             default:
                                 Log.Message("ERREUR EQUIPE NON EXISTANTE, BRUMESERVER.CS / l - 222", MessageType.Warning);

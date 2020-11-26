@@ -10,6 +10,7 @@ namespace BrumeServer
 {
     class Factory
     {
+        static Random r = new Random();
         public static Team GetOtherTeam(Team team)
         {
             if (team == Team.blue)
@@ -33,6 +34,13 @@ namespace BrumeServer
             }
             return true;
         }
+
+        public static int GenerateRandomNumber(int min, int max)
+        {
+            return r.Next(min, max);
+        }
+
+
     }
 
 }

@@ -22,6 +22,7 @@ namespace BrumeServer
 		// InGame >>
 		public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
 		public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
+		public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
 		// <<
 
 		public bool IsStarted = false;
@@ -59,7 +60,7 @@ namespace BrumeServer
 			champSelect.ResetData();
 			Scores.Clear();
 			InGameUniqueIDList.Clear();
-
+			assignedSpawn.Clear();
 			Scores.Add(Team.blue, 0);
 			Scores.Add(Team.red, 0);
 		}
@@ -156,9 +157,13 @@ namespace BrumeServer
 			}
 
 			SetAndSendInGameUniqueIDs();
+			SetSpawnAssignement();
 
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
+				Writer.Write(assignedSpawn[Team.red]);
+				Writer.Write(assignedSpawn[Team.blue]);
+
 				using (Message Message = Message.Create(Tags.StartGame, Writer))
 				{
 					foreach (KeyValuePair<IClient, Player> client in Players)
@@ -170,8 +175,7 @@ namespace BrumeServer
 			Log.Message("Game Started in Room : " + ID);
 		}
 
-
-		public void PlayerJoinGameScene () // Un joueur rejoint la scene de jeu
+        public void PlayerJoinGameScene () // Un joueur rejoint la scene de jeu
 		{
 			if (GameInit)
 				return;
@@ -357,6 +361,9 @@ namespace BrumeServer
 			Timers.StopTimersInstantly();
 			GameInit = false;
 
+			assignedSpawn.Clear();
+			SetSpawnAssignement();
+
 			foreach (KeyValuePair<IClient, Player> player in Players)
 			{
 				player.Value.IsInGameScene = false;
@@ -366,15 +373,20 @@ namespace BrumeServer
 			{
 				StopGame();
 				return;
+			} else
+            {
+				Addpoints(team, 1);
 			}
 
-			using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
 				// Recu par les joueurs déja présent dans la room
 
-				TeamWriter.Write(team);
+				// Writer.Write(team);
+				Writer.Write(assignedSpawn[Team.red]);
+				Writer.Write(assignedSpawn[Team.blue]);
 
-				using (Message Message = Message.Create(Tags.NewRound, TeamWriter))
+				using (Message Message = Message.Create(Tags.NewRound, Writer))
 				{
 					foreach (KeyValuePair<IClient, Player> client in Players)
 						client.Key.SendMessage(Message, SendMode.Reliable);
@@ -384,7 +396,7 @@ namespace BrumeServer
 
 		}
 
-		public void Addpoints ( ushort targetTeam, ushort value )
+		public void Addpoints( ushort targetTeam, ushort value )
 		{
 			Scores[(Team)targetTeam] += value;
 
@@ -570,7 +582,21 @@ namespace BrumeServer
 
 			}
 		}
+		private void SetSpawnAssignement()
+		{
+			Random r = new Random();
 
+			ushort redTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
+			ushort blueTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
+
+            while (blueTeamAssignement == redTeamAssignement) //pas propre
+            {
+				blueTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
+			}
+
+			assignedSpawn.Add(Team.red, redTeamAssignement);
+			assignedSpawn.Add(Team.blue, blueTeamAssignement);
+		}
 
 
 	}
