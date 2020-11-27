@@ -43,6 +43,10 @@ namespace BrumeServer
                 {
                     SyncFloat(sender, e);
                 }
+                else if (message.Tag == Tags.SendAnimBool)
+                {
+                    SyncFloat(sender, e);
+                }
             }
         }
 
@@ -164,6 +168,33 @@ namespace BrumeServer
 
         }
 
+        private void SendAnimBool(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _id = e.Client.ID;
+                    string _animName = reader.ReadString();
+                    bool _value = reader.ReadBoolean();
 
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                        Writer.Write(_id);
+                        Writer.Write(_animName);
+                        Writer.Write(_value);
+
+                        using (Message Message = Message.Create(Tags.SendAnimBool, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+
+        }
     }
 }
