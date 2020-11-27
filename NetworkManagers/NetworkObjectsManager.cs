@@ -153,9 +153,7 @@ namespace BrumeServer
         {
             float _ObjectPosx = 0;
             float _ObjectPosz = 0;
-            float _ObjectRotationx = 0;
             float _ObjectRotationy = 0;
-            float _ObjectRotationz = 0;
 
             using (Message message = e.GetMessage() as Message)
             {
@@ -175,9 +173,7 @@ namespace BrumeServer
 
                     if (_syncRot)
                     {
-                        _ObjectRotationx = reader.ReadSingle();
                         _ObjectRotationy = reader.ReadSingle();
-                        _ObjectRotationz = reader.ReadSingle();
                     }
 
                     using (DarkRiftWriter writer = DarkRiftWriter.Create())
@@ -196,9 +192,8 @@ namespace BrumeServer
 
                         if (_syncRot)
                         {
-                            writer.Write(_ObjectRotationx);
                             writer.Write(_ObjectRotationy);
-                            writer.Write(_ObjectRotationz);
+    
                         }
                         message.Serialize(writer);
                         using (Message MessageW = Message.Create(Tags.SynchroniseObject, writer))
