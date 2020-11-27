@@ -84,12 +84,19 @@
         public static readonly ushort MovePlayerTag = 1010;
         public static readonly ushort SupprObjPlayer = 1020;
 
+        //CHARA STATE AND EFFECTS
         public static readonly ushort StateUpdate = 2570;
         public static readonly ushort AddForcedMovement = 2580;
         public static readonly ushort AddStatus = 2590;
+        // <<
 
         //SPELLS CHARACTER
         public static readonly ushort LaunchSplouch = 2600;
+        // <<
+
+        //Animation
+        public static readonly ushort SendAnimBool = 3000;
+        public static readonly ushort SendAnimTrigger = 3001;
         // <<
     }
 }
