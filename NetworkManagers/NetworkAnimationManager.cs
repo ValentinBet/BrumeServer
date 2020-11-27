@@ -45,7 +45,7 @@ namespace BrumeServer
                 }
                 else if (message.Tag == Tags.SendAnimBool)
                 {
-                    SyncFloat(sender, e);
+                    SendAnimBool(sender, e);
                 }
             }
         }
