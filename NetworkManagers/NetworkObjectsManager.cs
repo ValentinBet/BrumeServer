@@ -42,7 +42,45 @@ namespace BrumeServer
                 {
                     DestroyObject(sender, e);
                 }
+                else if (message.Tag == Tags.SpawnGenericFx)
+                {
+                    SpawnGenericFx(sender, e);
+                }
             }
+        }
+
+        private void SpawnGenericFx(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _index = reader.ReadUInt16();
+                    float _posX = reader.ReadSingle();
+                    float _posZ = reader.ReadSingle();
+
+                    float _rota= reader.ReadSingle();
+                    float _scale = reader.ReadSingle();
+                    float _time = reader.ReadSingle();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_index);
+                        Writer.Write(_posX);
+                        Writer.Write(_posZ);
+                        Writer.Write(_rota);
+                        Writer.Write(_scale);
+                        Writer.Write(_time);
+
+                        using (Message Message = Message.Create(Tags.SpawnGenericFx, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+
         }
 
         private void DestroyObject(object sender, MessageReceivedEventArgs e)
