@@ -47,7 +47,6 @@ namespace BrumeServer
 
         public void StopTimersInstantly(bool finalize = false)
         {
-
             gameInitTimer.Enabled = false;
             altarTimer.Enabled = false;
 

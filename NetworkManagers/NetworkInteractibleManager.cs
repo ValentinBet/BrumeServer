@@ -60,7 +60,7 @@ namespace BrumeServer
                 else if (message.Tag == Tags.AltarSpeedBuff)
                 {
                     AltarSpeedBuff(sender, e);
-                }                
+                }
                 else if (message.Tag == Tags.AltarPoisonBuff)
                 {
                     AltarPoisonBuff(sender, e);
@@ -274,7 +274,7 @@ namespace BrumeServer
         {
             ushort[] _IDList;
             ushort roomID = 0;
-            
+
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
@@ -315,7 +315,7 @@ namespace BrumeServer
                         {
                             foreach (KeyValuePair<IClient, Player> client in _room.Players)
                             {
-                                    client.Key.SendMessage(Message, SendMode.Unreliable);
+                                client.Key.SendMessage(Message, SendMode.Unreliable);
                             }
                         }
                     }

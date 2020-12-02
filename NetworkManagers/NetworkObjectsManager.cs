@@ -144,7 +144,11 @@ namespace BrumeServer
                 using (Message MessageW = Message.Create(Tags.InstantiateObject, writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[Iclient].Room.ID].Players)
+                    {
+ 
                         client.Key.SendMessage(MessageW, SendMode.Reliable);
+                    }
+
                 }
             }
         }
