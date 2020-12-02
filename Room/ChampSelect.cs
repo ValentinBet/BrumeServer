@@ -60,6 +60,27 @@ namespace BrumeServer
             return true;
 
         }
+
+
+        public void ForcePickChamp(Character character, Player player)
+        {
+            Dictionary<Character, Player> _temp = null;
+
+            switch (player.playerTeam)
+            {
+                case Team.red:
+                    _temp = RedTeamCharacterPlayerPair;
+                    break;
+                case Team.blue:
+                    _temp = BlueTeamCharacterPlayerPair;
+                    break;
+                default: throw new Exception("Team error");
+            }
+
+            _temp[character] = player; // assign his new character
+            player.playerCharacter = character;
+
+        }
     }
 
 }

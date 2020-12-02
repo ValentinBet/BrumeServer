@@ -136,6 +136,14 @@ namespace BrumeServer
                 {
                     SelectCharacter(sender, e);
                 }
+                else if (message.Tag == Tags.CharacterSwap)
+                {
+                    CharacterSwap(sender, e);
+                }
+                else if (message.Tag == Tags.RefuseCharacterSwap)
+                {
+                    RefuseCharacterSwap(sender, e);
+                }
                 else if (message.Tag == Tags.StartGame)
                 {
                     StartGame(sender, e);
@@ -182,6 +190,8 @@ namespace BrumeServer
                 }
             }
         }
+
+
 
         private void Ping(object sender, MessageReceivedEventArgs e)
         {
@@ -868,9 +878,32 @@ namespace BrumeServer
         }
 
 
+        private void CharacterSwap(object sender, MessageReceivedEventArgs e)
+        {
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort askingPlayer = reader.ReadUInt16();
+
+                    rooms[players[e.Client].Room.ID].CharacterSwap(askingPlayer, e.Client.ID);
+                }
+            }
+        }
+        private void RefuseCharacterSwap(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort askingPlayer = reader.ReadUInt16();
+
+                    rooms[players[e.Client].Room.ID].RefuseCharacterSwap(askingPlayer, e.Client);
+                }
+            }
+        }
 
         #endregion
-
-
     }
 }

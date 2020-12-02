@@ -119,6 +119,10 @@ namespace BrumeServer
 		{
 			return Players.Single(x => x.Key.ID == ID).Value;
 		}
+		public IClient GetPlayerClientByID(ushort ID)
+		{
+			return Players.Single(x => x.Key.ID == ID).Key;
+		}
 
 		public Dictionary<IClient, Player> GetPlayerListInTeam(Team team)
         {
@@ -550,11 +554,61 @@ namespace BrumeServer
 					}
 				}
 			}
-			else
-			{
-				return;
-			}
+			else // Sinon demande de swap
+			{		
+				using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+				{
+					ushort targetID = (ushort)GetPlayerCharacterInTeam(Players[Iclient].playerTeam, character);
 
+					Writer.Write(Iclient.ID);
+					Writer.Write(targetID);
+					Writer.Write((ushort)Players[Iclient].playerCharacter);
+
+					using (Message Message = Message.Create(Tags.AskForCharacterSwap, Writer))
+					{
+						foreach (KeyValuePair<IClient, Player> client in Players)
+                        {
+                            if ((client.Value.ID == targetID) || (client.Value.ID == Iclient.ID))
+                            {
+								client.Key.SendMessage(Message, SendMode.Reliable);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		internal void CharacterSwap(ushort askingPlyr, ushort targetedPlyr) // Echange les personnages de 2 joueurs
+		{
+			Character _temp = GetPlayerByID(askingPlyr).playerCharacter;
+			champSelect.ForcePickChamp(GetPlayerByID(targetedPlyr).playerCharacter, GetPlayerByID(askingPlyr));
+			champSelect.ForcePickChamp(_temp, GetPlayerByID(targetedPlyr));
+
+			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+			{
+				Writer.Write(targetedPlyr);
+				Writer.Write(askingPlyr);
+				Writer.Write((ushort)GetPlayerByID(targetedPlyr).playerCharacter);
+				Writer.Write((ushort)GetPlayerByID(askingPlyr).playerCharacter);
+
+				using (Message Message = Message.Create(Tags.CharacterSwap, Writer))
+				{
+					foreach (KeyValuePair<IClient, Player> client in Players)
+						client.Key.SendMessage(Message, SendMode.Reliable);
+				}
+			}
+		}
+
+		internal void RefuseCharacterSwap(ushort askingPlayer,IClient targetClient)
+		{
+			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+			{
+				using (Message Message = Message.Create(Tags.RefuseCharacterSwap, Writer))
+				{
+					GetPlayerClientByID(askingPlayer).SendMessage(Message, SendMode.Reliable);
+					targetClient.SendMessage(Message, SendMode.Reliable);
+				}
+			}
 		}
 
 		internal void SetAndSendInGameUniqueIDs()
@@ -599,5 +653,5 @@ namespace BrumeServer
 		}
 
 
-	}
+    }
 }
