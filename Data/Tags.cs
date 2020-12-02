@@ -97,13 +97,10 @@
         public static readonly ushort LaunchSplouch = 2600;
         // <<
 
-        //Animation
-        public static readonly ushort SendAnimBool = 3000;
-        public static readonly ushort SendAnimTrigger = 3001;
-        // <<
 
         //Fx
         public static readonly ushort SpawnGenericFx = 4000;
+        public static readonly ushort SpawnAOEFx = 4001;
         // <<
     }
 }
