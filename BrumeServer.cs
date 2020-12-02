@@ -212,6 +212,8 @@ namespace BrumeServer
                     ushort _killerID = reader.ReadUInt16();
                     Character _character = (Character)reader.ReadUInt16();
 
+                    // -------
+
                     ushort _roomID = players[e.Client].Room.ID;
 
                     if (_character == Character.shili)
@@ -230,8 +232,8 @@ namespace BrumeServer
                         }
                         return;
                     }
-
                     Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
+
                     networkObjectsManager.ServerInstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -592,7 +594,14 @@ namespace BrumeServer
                 using (Message Message = Message.Create(Tags.PlayerQuitRoom, QuitWriter))
                 {
                     foreach (KeyValuePair<IClient, Player> client in rooms[room.ID].Players)
+                    {
+                        if (Eclient.ID == client.Key.ID)
+                        {
+                            continue;
+                        }
                         client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+
                 }
             }
 
