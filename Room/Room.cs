@@ -346,6 +346,7 @@ namespace BrumeServer
 			foreach (KeyValuePair<IClient, Player> player in Players)
 			{
 				player.Value.IsInGameScene = false;
+				player.Value.playerCharacter = Character.none;
 			}
 
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
