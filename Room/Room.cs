@@ -554,7 +554,7 @@ namespace BrumeServer
 					}
 				}
 			}
-			else // Sinon demande de swap
+			else if((Players[Iclient].playerCharacter != Character.none) && (character != Players[Iclient].playerCharacter))// Sinon demande de swap
 			{		
 				using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 				{
