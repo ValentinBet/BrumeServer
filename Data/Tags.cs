@@ -50,7 +50,6 @@
 
         //Anim 750 --> 769 >>
         public static readonly ushort SyncTrigger = 750;
-        public static readonly ushort Sync2DBlendTree = 752;
         public static readonly ushort SyncBoolean = 754;
         public static readonly ushort SyncFloat = 756;
         // <<

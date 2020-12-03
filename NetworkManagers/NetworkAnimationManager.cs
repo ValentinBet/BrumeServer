@@ -30,12 +30,8 @@ namespace BrumeServer
                 if (message.Tag == Tags.SyncTrigger)
                 {
                     SyncTrigger(sender, e);
-                }
-                else if (message.Tag == Tags.Sync2DBlendTree)
-                {
-                    Sync2DBlendTree(sender, e);
-                }                
-                else if (message.Tag == Tags.Sync2DBlendTree)
+                }       
+                else if (message.Tag == Tags.SyncBoolean)
                 {
                     SyncBoolean(sender, e);
                 }                
@@ -73,40 +69,6 @@ namespace BrumeServer
 
         }
 
-        private void Sync2DBlendTree(object sender, MessageReceivedEventArgs e)
-        {
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    ushort _id = reader.ReadUInt16();
-                    byte Xvalue = reader.ReadByte();
-                    byte Yvalue = reader.ReadByte();
-
-                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
-                    {
-                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
-
-                        TeamWriter.Write(_id);
-                        TeamWriter.Write(Xvalue);
-                        TeamWriter.Write(Yvalue);
-
-                        using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
-                            {
-                                if (Factory.CheckSendPlayerAnim(brumeServer.rooms[brumeServer.players[e.Client].Room.ID], client.Value.ID, _id))
-                                {
-                                    client.Key.SendMessage(Message, e.SendMode);
-                                }
-                            }     
-                        }
-                    }
-                }
-            }
-
-        }
-
         private void SyncBoolean(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -125,7 +87,7 @@ namespace BrumeServer
                         TeamWriter.Write(boolean);
                         TeamWriter.Write(value);
 
-                        using (Message Message = Message.Create(Tags.Sync2DBlendTree, TeamWriter))
+                        using (Message Message = Message.Create(Tags.SyncBoolean, TeamWriter))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
@@ -163,7 +125,5 @@ namespace BrumeServer
             }
 
         }
-
-      
     }
 }
