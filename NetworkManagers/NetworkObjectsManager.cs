@@ -103,7 +103,7 @@ namespace BrumeServer
                         Writer.Write(_posY);
                         Writer.Write(_posZ);
 
-                        using (Message Message = Message.Create(Tags.Play2DSound, Writer))
+                        using (Message Message = Message.Create(Tags.Play3DSound, Writer))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
