@@ -275,6 +275,7 @@ namespace BrumeServer
                     {
                         Writer.Write(_targetID);
                         Writer.Write(_damages);
+                        Writer.Write(e.Client.ID);
 
                         using (Message Message = Message.Create(Tags.Damages, Writer))
                         {
