@@ -50,6 +50,66 @@ namespace BrumeServer
                 {
                     SpawnAOEFx(sender, e);
                 }
+                else if (message.Tag == Tags.Play2DSound)
+                {
+                    Play2DSound(sender, e);
+                }
+                else if (message.Tag == Tags.Play3DSound)
+                {
+                    Play3DSound(sender, e);
+                }
+            }
+        }
+
+        private void Play2DSound(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _index = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_index);
+
+                        using (Message Message = Message.Create(Tags.Play2DSound, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Play3DSound(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _index = reader.ReadUInt16();
+
+                    float _posX = reader.ReadSingle();
+                    float _posY = reader.ReadSingle();
+                    float _posZ = reader.ReadSingle();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_index);
+
+                        Writer.Write(_posX);
+                        Writer.Write(_posY);
+                        Writer.Write(_posZ);
+
+                        using (Message Message = Message.Create(Tags.Play2DSound, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
             }
         }
 
