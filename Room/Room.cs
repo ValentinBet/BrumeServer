@@ -567,12 +567,9 @@ namespace BrumeServer
 
 					using (Message Message = Message.Create(Tags.AskForCharacterSwap, Writer))
 					{
-						foreach (KeyValuePair<IClient, Player> client in Players)
+						foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == Players[Iclient].playerTeam))
                         {
-                            if ((client.Value.ID == targetID) || (client.Value.ID == Iclient.ID))
-                            {
 								client.Key.SendMessage(Message, SendMode.Reliable);
-							}
 						}
 					}
 				}
@@ -600,14 +597,14 @@ namespace BrumeServer
 			}
 		}
 
-		internal void RefuseCharacterSwap(ushort askingPlayer,IClient targetClient)
+		internal void RefuseCharacterSwap(IClient targetClient)
 		{
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
 				using (Message Message = Message.Create(Tags.RefuseCharacterSwap, Writer))
 				{
-					GetPlayerClientByID(askingPlayer).SendMessage(Message, SendMode.Reliable);
-					targetClient.SendMessage(Message, SendMode.Reliable);
+					foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == Players[targetClient].playerTeam))
+						client.Key.SendMessage(Message, SendMode.Reliable);
 				}
 			}
 		}

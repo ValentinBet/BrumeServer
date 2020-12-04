@@ -900,7 +900,7 @@ namespace BrumeServer
                 {
                     ushort askingPlayer = reader.ReadUInt16();
 
-                    rooms[players[e.Client].Room.ID].RefuseCharacterSwap(askingPlayer, e.Client);
+                    rooms[players[e.Client].Room.ID].RefuseCharacterSwap(e.Client);
                 }
             }
         }
