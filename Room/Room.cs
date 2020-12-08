@@ -497,7 +497,7 @@ namespace BrumeServer
 			Altars.ChooseAltar(chosenAltar);
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
-				// Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+				// Recu par les joueurs déja présent dans la room
 
 				Writer.Write(chosenAltar);
 
@@ -512,12 +512,30 @@ namespace BrumeServer
 		public void StartGameTimer ()
 		{
 			StartTimer();
+			Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
 			Timers.StartGameInitTimer(GameData.GameInitTime);
 			Timers.StartNewGameStopWatch();
 		}
+		internal void SoulTimerElapsed()
+		{
+			ushort chosenBrume = (ushort)Factory.GenerateRandomNumber(0, GameData.BrumeCount);
+			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+			{
+				// Recu par les joueurs déja présent dans la room
+
+				Writer.Write(chosenBrume);
+
+				using (Message Message = Message.Create(Tags.BrumeSoulSpawnCall, Writer))
+				{
+					foreach (KeyValuePair<IClient, Player> client in Players)
+						client.Key.SendMessage(Message, SendMode.Reliable);
+				}
+			}
+
+			Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
+		}
 
 		#endregion
-
 
 		private void UnlockAllVisionTowers()
 		{

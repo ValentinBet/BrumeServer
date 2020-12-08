@@ -188,9 +188,12 @@ namespace BrumeServer
                 {
                     SendNewStatus(sender, e);
                 }
+                else if (message.Tag == Tags.BrumeSoulPicked)
+                {
+                    BrumeSoulPicked(sender, e);
+                }
             }
         }
-
 
 
         private void Ping(object sender, MessageReceivedEventArgs e)
@@ -901,6 +904,30 @@ namespace BrumeServer
                     ushort askingPlayer = reader.ReadUInt16();
 
                     rooms[players[e.Client].Room.ID].RefuseCharacterSwap(e.Client);
+                }
+            }
+        }
+
+        private void BrumeSoulPicked(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort soulBrumeIndex = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room
+
+                        Writer.Write(soulBrumeIndex);
+
+                        using (Message Message = Message.Create(Tags.BrumeSoulPicked, Writer))
+                        {
+                            foreach (IClient client in rooms[players[e.Client].Room.ID].Players.Keys)
+                                client.SendMessage(Message, SendMode.Reliable);
+                        }
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@ namespace BrumeServer
 
         public NetworkTimer altarTimer;
         public NetworkTimer gameInitTimer;
+        public NetworkTimer soulTimer;
         public Stopwatch gameTimer;
 
         public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
@@ -38,6 +39,13 @@ namespace BrumeServer
             };
             altarTimer.Elapsed += AltarTimerElapsed;
 
+            // SoulTimer
+            soulTimer = new NetworkTimer
+            {
+                AutoReset = false
+            };
+            soulTimer.Elapsed += SoulTimerElapsed;
+
             // gameTimer
             gameTimer = new Stopwatch();
             gameTimer.Stop();
@@ -49,6 +57,7 @@ namespace BrumeServer
         {
             gameInitTimer.Enabled = false;
             altarTimer.Enabled = false;
+            soulTimer.Enabled = false;
 
             gameTimer.Reset();
 
@@ -78,9 +87,11 @@ namespace BrumeServer
         {
             gameInitTimer.Elapsed -= GameInitTimerElapsed;
             altarTimer.Elapsed -= AltarTimerElapsed;
+            soulTimer.Elapsed -= SoulTimerElapsed;
 
             gameInitTimer.Dispose();
             altarTimer.Dispose();
+            soulTimer.Dispose();
         }
 
         public void StartGameInitTimer(float time = 1000)
@@ -107,7 +118,28 @@ namespace BrumeServer
         }
 
 
+        public void StartNewSoulTimer(float time = 1000)
+        {
+            if (soulTimer.Enabled)
+            {
+                throw new Exception("DEMANDE DE CREATION DE ALTARTIMER AVANT LA FIN DU PRECEDENT");
+            }
 
+            soulTimer.Interval = time;
+
+            soulTimer.Enabled = true;
+        }
+
+        public double GetSoulTimerRemainingTime()
+        {
+            return soulTimer.TimeLeft;
+        }
+
+        public void SoulTimerElapsed(Object source, ElapsedEventArgs e)
+        {
+            room.SoulTimerElapsed();
+            // + Event dans le NetworkTimer
+        }
 
         public void StartNewAltarTimer(float time = 1000)
         {
@@ -153,6 +185,9 @@ namespace BrumeServer
         {
             return gameTimer.Elapsed;
         }
+
+
+
 
         internal void StartNewFrogTimer(ushort frogID, float time = 1000)
         {
