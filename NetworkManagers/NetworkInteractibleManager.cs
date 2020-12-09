@@ -181,7 +181,9 @@ namespace BrumeServer
                             brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewFrogTimer(_ID);
                             break;
                         case InteractibleType.ResurectAltar:
-
+                            break;
+                        case InteractibleType.HealthPack:
+                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartHealthPackTimer(_ID);
                             break;
                         default:
                             throw new Exception("Interactible type not existing");

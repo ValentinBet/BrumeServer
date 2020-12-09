@@ -306,7 +306,7 @@ namespace BrumeServer
 			}
 		}
 
-		public void SendStatus ( object sender, MessageReceivedEventArgs e, ushort _statusToSend , ushort playerTargeted)
+        public void SendStatus ( object sender, MessageReceivedEventArgs e, ushort _statusToSend , ushort playerTargeted)
 		{
 				using (DarkRiftWriter writer = DarkRiftWriter.Create())
 				{
@@ -363,9 +363,15 @@ namespace BrumeServer
 
 		internal void NewRound ( ushort team )
 		{
+            if (!GameInit)
+            {
+				Log.Message("NEW ROUND ASKED IN A NONE INIT GAME", MessageType.Error);
+				return;
+            }
+
 			Timers.StopTimersInstantly();
 			GameInit = false;
-
+			Altars.ResetAltars();
 			assignedSpawn.Clear();
 			SetSpawnAssignement();
 
@@ -461,6 +467,30 @@ namespace BrumeServer
 				}
 			}
 		}
+
+		internal void StartHealthPackTimer(ushort healthPackID)
+		{
+			Timers.StartNewHealthPackTimer(healthPackID, GameData.healthPackRespawnTime);
+		}
+
+		internal void HealthPackTimerElapsed(ushort healthPackID)
+		{
+			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+			{
+				// Recu par les joueurs déja présent dans la room 
+
+				Writer.Write(healthPackID);
+
+				using (Message Message = Message.Create(Tags.HealthPackTimerElapsed, Writer))
+				{
+					foreach (KeyValuePair<IClient, Player> client in Players)
+						client.Key.SendMessage(Message, SendMode.Reliable);
+				}
+			}
+		}
+
+
+
 		internal void StartNewVisionTowerTimer ( ushort iD )
 		{
 			Timers.StartNewVisionTowerTimer(iD, GameData.VisionTowerReactivateTime);

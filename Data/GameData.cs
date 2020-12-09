@@ -27,7 +27,8 @@ namespace BrumeServer
             Altar = 1,
             VisionTower = 2,
             Frog = 3,
-            ResurectAltar = 4
+            ResurectAltar = 4,
+            HealthPack = 5
         }
 
         public static readonly ushort resObjInstansiateID = 5;
@@ -43,8 +44,9 @@ namespace BrumeServer
         //<<
 
         public static int GameInitTime = 15000; // ms
-        public static int AltarLockTime = 1; // ms
+        public static int AltarLockTime = 100; // ms
         public static int FrogRespawnTime = 30000; // ms
+        public static int healthPackRespawnTime = 20000; // ms
         public static int VisionTowerReactivateTime = 20000; // ms       
         public static int BrumeSoulRespawnMinTime = 5000; // ms       
         public static int BrumeSoulRespawnMaxTime = 7000; // ms       

@@ -19,6 +19,7 @@ namespace BrumeServer
         public Stopwatch gameTimer;
 
         public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
+        public Dictionary<NetworkTimer, ushort> healthPackTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
         public Dictionary<NetworkTimer, ushort> towerTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
 
         public RoomTimers(Room room)
@@ -69,6 +70,13 @@ namespace BrumeServer
                 timer.Key.Dispose();
             }
 
+            foreach (KeyValuePair<NetworkTimer, ushort> timer in healthPackTemporaryTimers)
+            {
+                timer.Key.Elapsed -= (sender, e) => HealthPackTimerElapsed(sender, e, timer.Value, timer.Key);
+
+                timer.Key.Stop();
+                timer.Key.Dispose();
+            }
             foreach (KeyValuePair<NetworkTimer, ushort> timer in towerTemporaryTimers)
             {
                 timer.Key.Elapsed -= (sender, e) => VisionTowerTimerElapsed(sender, e, timer.Value, timer.Key);
@@ -187,8 +195,6 @@ namespace BrumeServer
         }
 
 
-
-
         internal void StartNewFrogTimer(ushort frogID, float time = 1000)
         {
             NetworkTimer newFrogTimer = new NetworkTimer
@@ -204,11 +210,34 @@ namespace BrumeServer
 
         private void FrogTimerElapsed(Object source, ElapsedEventArgs ee, ushort frogID, NetworkTimer newFrogTimer)
         {
-            newFrogTimer.Elapsed -= (sender, e) => VisionTowerTimerElapsed(sender, e, frogID, newFrogTimer);
+            newFrogTimer.Elapsed -= (sender, e) => FrogTimerElapsed(sender, e, frogID, newFrogTimer);
             room.FrogTimerElapsed(frogID);
             frogTemporaryTimers.Remove(newFrogTimer);
             newFrogTimer.Dispose();
         }
+
+        internal void StartNewHealthPackTimer(ushort healthPackID, float time = 1000)
+        {
+            NetworkTimer newHealthPackTimer = new NetworkTimer
+            {
+                AutoReset = false,
+                Interval = time,
+                Enabled = true
+            };
+            healthPackTemporaryTimers.Add(newHealthPackTimer, healthPackID);
+
+            newHealthPackTimer.Elapsed += (sender, e) => HealthPackTimerElapsed(sender, e, healthPackID, newHealthPackTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+        }
+
+        private void HealthPackTimerElapsed(Object source, ElapsedEventArgs ee, ushort healthPackID, NetworkTimer newHealthPackTimer)
+        {
+            newHealthPackTimer.Elapsed -= (sender, e) => HealthPackTimerElapsed(sender, e, healthPackID, newHealthPackTimer);
+            room.HealthPackTimerElapsed(healthPackID);
+            healthPackTemporaryTimers.Remove(newHealthPackTimer);
+            newHealthPackTimer.Dispose();
+        }
+
+
 
         internal void StartNewVisionTowerTimer(ushort iD, int time)
         {

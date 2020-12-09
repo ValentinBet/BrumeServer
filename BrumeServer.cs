@@ -192,8 +192,13 @@ namespace BrumeServer
                 {
                     BrumeSoulPicked(sender, e);
                 }
+                else if (message.Tag == Tags.AskForStopGame)
+                {
+                    AskForStopGame(sender, e);
+                }
             }
         }
+
 
 
         private void Ping(object sender, MessageReceivedEventArgs e)
@@ -933,5 +938,17 @@ namespace BrumeServer
         }
 
         #endregion
+
+
+        private void AskForStopGame(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    rooms[players[e.Client].Room.ID].StopGame();
+                }
+            }
+        }
     }
 }
