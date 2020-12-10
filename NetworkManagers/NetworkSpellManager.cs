@@ -40,6 +40,10 @@ namespace BrumeServer
                 {
                     ChangeFowSize(sender, e);
                 }
+                else if (message.Tag == Tags.ForceFowSize)
+                {
+                    ForceFowSize(sender, e);
+                }
             }
         }
 
@@ -120,6 +124,35 @@ namespace BrumeServer
                         Writer.Write(_size);
 
                         using (Message Message = Message.Create(Tags.ChangeFowSize, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].GetPlayerListInTeam(brumeServer.players[e.Client].playerTeam))
+                            {
+                                if (client.Key == e.Client)
+                                    continue;
+
+                                client.Key.SendMessage(Message, SendMode.Reliable);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ForceFowSize(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _ID = e.Client.ID;
+                    uint _size = reader.ReadUInt32();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_ID);
+                        Writer.Write(_size);
+
+                        using (Message Message = Message.Create(Tags.ForceFowSize, Writer))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].GetPlayerListInTeam(brumeServer.players[e.Client].playerTeam))
                             {
