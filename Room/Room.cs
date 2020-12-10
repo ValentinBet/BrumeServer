@@ -339,8 +339,14 @@ namespace BrumeServer
 			}
 		}
 
-		public void StopGame ()
+		public void StopGame (ushort team = (ushort)Team.none)
 		{
+			if (!GameInit)
+			{
+				Log.Message("NEW GAME ASKED IN A NONE INIT GAME", MessageType.Error);
+				return;
+			}
+
 			ResetGameData();
 
 			foreach (KeyValuePair<IClient, Player> player in Players)
@@ -351,6 +357,7 @@ namespace BrumeServer
 
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
+				Writer.Write(team);
 				using (Message Message = Message.Create(Tags.StopGame, Writer))
 				{
 					foreach (KeyValuePair<IClient, Player> client in Players)
@@ -370,7 +377,6 @@ namespace BrumeServer
             }
 
 			Timers.StopTimersInstantly();
-			GameInit = false;
 			Altars.ResetAltars();
 			assignedSpawn.Clear();
 			SetSpawnAssignement();
@@ -382,18 +388,20 @@ namespace BrumeServer
 
 			if (Scores[(Team)team] == GameData.RoundToWin - 1)
 			{
-				StopGame();
+				StopGame(team);
 				return;
 			} else
             {
 				Addpoints(team, 1);
 			}
 
+			GameInit = false;
+
 			using (DarkRiftWriter Writer = DarkRiftWriter.Create())
 			{
 				// Recu par les joueurs déja présent dans la room
 
-				// Writer.Write(team);
+				Writer.Write(team);
 				Writer.Write(assignedSpawn[Team.red]);
 				Writer.Write(assignedSpawn[Team.blue]);
 
