@@ -39,6 +39,10 @@ namespace BrumeServer
                 {
                     SyncFloat(sender, e);
                 }
+                else if (message.Tag == Tags.SyncInt)
+                {
+                    SyncInt(sender, e);
+                }
             }
         }
 
@@ -54,7 +58,6 @@ namespace BrumeServer
                     using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
                     {
                         // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
-
                         TeamWriter.Write(_id);
                         TeamWriter.Write(trigger);
 
@@ -82,7 +85,6 @@ namespace BrumeServer
                     using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
                     {
                         // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
-
                         TeamWriter.Write(_id);
                         TeamWriter.Write(boolean);
                         TeamWriter.Write(value);
@@ -110,12 +112,38 @@ namespace BrumeServer
                     using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
                     {
                         // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
-
                         TeamWriter.Write(_id);
                         TeamWriter.Write(floatName);
                         TeamWriter.Write(value);
 
                         using (Message Message = Message.Create(Tags.SyncFloat, TeamWriter))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
+                                client.Key.SendMessage(Message, e.SendMode);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SyncInt(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _id = reader.ReadUInt16();
+                    string intName = reader.ReadString();
+                    ushort value = reader.ReadUInt16();
+
+                    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                    {
+                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+                        TeamWriter.Write(_id);
+                        TeamWriter.Write(intName);
+                        TeamWriter.Write(value);
+
+                        using (Message Message = Message.Create(Tags.SyncInt, TeamWriter))
                         {
                             foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players.Where(x => x.Key != e.Client))
                                 client.Key.SendMessage(Message, e.SendMode);
