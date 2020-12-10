@@ -113,13 +113,11 @@ namespace BrumeServer
                 {
                     ushort _ID = e.Client.ID;
                     uint _size = reader.ReadUInt32();
-                    bool _reset = reader.ReadBoolean();
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(_ID);
                         Writer.Write(_size);
-                        Writer.Write(_reset);
 
                         using (Message Message = Message.Create(Tags.ChangeFowSize, Writer))
                         {
