@@ -196,10 +196,12 @@ namespace BrumeServer
                 {
                     AskForStopGame(sender, e);
                 }
+                else if (message.Tag == Tags.NewChatMessage)
+                {
+                    NewChatMessage(sender, e);
+                }
             }
         }
-
-
 
         private void Ping(object sender, MessageReceivedEventArgs e)
         {
@@ -744,8 +746,8 @@ namespace BrumeServer
             }
         }
 
-        private void SendPlayerState ( object sender, MessageReceivedEventArgs e )
-		{
+        private void SendPlayerState(object sender, MessageReceivedEventArgs e)
+        {
             ushort _roomId;
 
             using (Message message = e.GetMessage() as Message)
@@ -761,8 +763,8 @@ namespace BrumeServer
             }
         }
 
-        private void SendForcedMovement( object sender, MessageReceivedEventArgs e )
-		{
+        private void SendForcedMovement(object sender, MessageReceivedEventArgs e)
+        {
             ushort _roomId;
 
             using (Message message = e.GetMessage() as Message)
@@ -785,7 +787,7 @@ namespace BrumeServer
         }
 
 
-        private void SendNewStatus ( object sender, MessageReceivedEventArgs e )
+        private void SendNewStatus(object sender, MessageReceivedEventArgs e)
         {
             ushort _roomId;
 
@@ -939,6 +941,30 @@ namespace BrumeServer
 
         #endregion
 
+        private void NewChatMessage(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    string _message = reader.ReadString();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(e.Client.ID);
+                        Writer.Write(_message);
+
+                        using (Message Message = Message.Create(Tags.NewChatMessage, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
+                            {
+                                client.Key.SendMessage(Message, SendMode.Reliable);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         private void AskForStopGame(object sender, MessageReceivedEventArgs e)
         {

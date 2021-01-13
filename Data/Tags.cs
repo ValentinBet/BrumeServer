@@ -21,6 +21,7 @@
     public static readonly ushort AskForCharacterSwap = 145;
     public static readonly ushort CharacterSwap = 146;
     public static readonly ushort RefuseCharacterSwap = 147;
+    public static readonly ushort NewChatMessage = 160;
     // <<
 
     // InGame 300 --> XXXX >>   
@@ -71,6 +72,7 @@
     public static readonly ushort AltarTrailDebuff = 800;
     public static readonly ushort AltarSpeedBuff = 802;
     public static readonly ushort AltarPoisonBuff = 804;
+    public static readonly ushort AltarOutlineBuff = 806;
     // <<
 
     //Spells 810 --> XXX >>
