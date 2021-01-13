@@ -95,6 +95,9 @@ namespace BrumeServer
                     float _posY = reader.ReadSingle();
                     float _posZ = reader.ReadSingle();
 
+                    ushort _id = reader.ReadUInt16();
+                    bool _isPlayer = reader.ReadBoolean();
+
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(_index);
@@ -102,6 +105,9 @@ namespace BrumeServer
                         Writer.Write(_posX);
                         Writer.Write(_posY);
                         Writer.Write(_posZ);
+
+                        Writer.Write(_id);
+                        Writer.Write(_isPlayer);
 
                         using (Message Message = Message.Create(Tags.Play3DSound, Writer))
                         {
