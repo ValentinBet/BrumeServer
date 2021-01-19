@@ -41,6 +41,12 @@ namespace BrumeServer
             { Character.B, null } 
         };
 
+        public static readonly Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
+            { Character.shili, 5 },
+            { Character.A, 6 },
+            { Character.B, 7 }
+        };
+
         //<<
 
         public static int GameInitTime = 15000; // ms

@@ -192,6 +192,14 @@ namespace BrumeServer
                 {
                     BrumeSoulPicked(sender, e);
                 }
+                else if (message.Tag == Tags.AddUltimatePoint)
+                {
+                    AddUltimatePoint(sender, e);
+                }
+                else if (message.Tag == Tags.AddUltimatePointToAllTeam)
+                {
+                    AddUltimatePointToAllTeam(sender, e);
+                }
                 else if (message.Tag == Tags.AskForStopGame)
                 {
                     AskForStopGame(sender, e);
@@ -444,6 +452,34 @@ namespace BrumeServer
         {
             rooms[roomID].Addpoints(targetTeam, value);
         }
+
+        private void AddUltimatePoint(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort value = reader.ReadUInt16();
+
+                    rooms[players[e.Client].Room.ID].SetUltimateStacks(e.Client.ID, value);
+                }
+            }
+        }
+
+
+        private void AddUltimatePointToAllTeam(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    Team team = (Team)reader.ReadUInt16();
+                    ushort value = reader.ReadUInt16();
+                    rooms[players[e.Client].Room.ID].AddUltimateStackToAllTeam(team, value);
+                }
+            }
+        }
+
 
         #endregion
 
