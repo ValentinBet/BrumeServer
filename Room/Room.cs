@@ -771,7 +771,6 @@ namespace BrumeServer
                     Log.Message(team.ToString());
                     foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == team))
                     {
-                        Log.Message(client.Key.ID + "");
                         client.Key.SendMessage(message, SendMode.Reliable);
                     }
 
