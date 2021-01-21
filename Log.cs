@@ -17,6 +17,7 @@ namespace BrumeServer
 {
     public class Log
     {
+
         /// <summary>
         /// Simpliest Log method
         /// </summary>

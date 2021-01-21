@@ -36,22 +36,29 @@ namespace BrumeServer
 
         public void AddPlayerInZone(Player player)
         {
-            playerTriggeredInZone.Add(player);
+            if (playerTriggeredInZone.Contains(player))
+            {
+                return;
+            }
 
+            playerTriggeredInZone.Add(player);
             CheckCapture(player);
         }
         public void RemovePlayerInZone(Player player)
         {
-            playerTriggeredInZone.Remove(player);
-            playerTriggeredInZone.RemoveAll(item => item == null);
-
-            CheckCapture();
+            if (playerTriggeredInZone.Contains(player))
+            {
+                playerTriggeredInZone.Remove(player);
+                playerTriggeredInZone.RemoveAll(item => item == null);
+                CheckCapture();
+            }
         }
 
         private void CheckCapture(Player player = null)
         {
             if (player != null)
             {
+
                 if (playerTriggeredInZone.Count == 1 && playerTriggeredInZone.Contains(player)) // SI CEST LE SEUL JOUEUR
                 {
                     TryCapture(player);
@@ -83,6 +90,7 @@ namespace BrumeServer
                         }
                         else
                         {
+
                             capturingPlayer = GetClosestPlayer();
                             TryCapture(capturingPlayer);
                             ResetCapture();

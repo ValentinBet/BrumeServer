@@ -7,7 +7,6 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static BrumeServer.GameData;
-
 namespace BrumeServer
 {
     class NetworkInteractibleManager
@@ -103,6 +102,7 @@ namespace BrumeServer
                     }
                 }
             }
+        
         }
 
         private void TryCaptureInteractibleReceiver(object sender, MessageReceivedEventArgs e)
