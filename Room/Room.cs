@@ -24,6 +24,7 @@ namespace BrumeServer
         public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
         public Dictionary<ushort, ushort> InGameUltimateStacks = new Dictionary<ushort, ushort>();
         public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
+        public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
         // <<
 
         public bool IsStarted = false;
@@ -582,6 +583,46 @@ namespace BrumeServer
 
         #endregion
 
+
+        #region interactible
+
+        public void TryCaptureNewInteractible(ushort _interID, ushort team, System.Numerics.Vector3 pos, ushort iD, InteractibleType type)
+        {
+            if (InCaptureInteractible.ContainsKey(_interID))
+            {
+                InCaptureInteractible[_interID].AddPlayerInZone(GetPlayerByID(iD));
+            }
+            else
+            {
+                Interactible _inter = new Interactible(_interID, pos, (Team)team, GetPlayerByID(iD), type, this);
+                InCaptureInteractible.Add(_interID, _inter);
+            }
+        }
+
+        public void QuitInteractibleZone(ushort _interID, ushort iD)
+        {
+            if (InCaptureInteractible.ContainsKey(_interID))
+            {
+                InCaptureInteractible[_interID].RemovePlayerInZone(GetPlayerByID(iD));
+            }
+        }
+
+        public void RemoveInteractible(ushort _interID)
+        {
+            if (InCaptureInteractible.ContainsKey(_interID))
+            {
+                InCaptureInteractible.Remove(_interID);
+            }
+        }
+
+        internal void InteractibleCaptureProgress(ushort _interID, float progress)
+        {
+            if (InCaptureInteractible.ContainsKey(_interID))
+            {
+                InCaptureInteractible[_interID].CaptureProgress(progress);
+            }
+        }
+
         private void UnlockAllVisionTowers()
         {
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
@@ -597,7 +638,7 @@ namespace BrumeServer
                 }
             }
         }
-
+        #endregion
 
         internal void TryPickCharacter(Character character, IClient Iclient)
         {

@@ -12,7 +12,7 @@ namespace BrumeServer
     {
         public BrumeServer brumeServer;
 
-        private static readonly NetworkAnimationManager instance;
+        private static NetworkAnimationManager instance;
         public static NetworkAnimationManager Instance { get { return instance; } }
 
         static NetworkAnimationManager()
@@ -21,6 +21,7 @@ namespace BrumeServer
 
         public NetworkAnimationManager()
         {
+            instance = this;
         }
 
         internal void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)

@@ -13,7 +13,7 @@ namespace BrumeServer
     {
         public BrumeServer brumeServer;
 
-        private static readonly NetworkObjectsManager instance;
+        private static NetworkObjectsManager instance;
         public static NetworkObjectsManager Instance { get { return instance; } }
 
         static NetworkObjectsManager()
@@ -22,6 +22,7 @@ namespace BrumeServer
 
         public NetworkObjectsManager()
         {
+            instance = this;
         }
 
         public ushort lastObjUniqueID = 0;

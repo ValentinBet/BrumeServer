@@ -22,7 +22,6 @@ namespace BrumeServer
         public override bool ThreadSafe => false;
         public override Version Version => new Version(1, 0, 2);
 
-
         public Dictionary<IClient, Player> players = new Dictionary<IClient, Player>();
         public Dictionary<ushort, Room> rooms = new Dictionary<ushort, Room>();
 

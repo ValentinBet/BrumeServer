@@ -13,7 +13,7 @@ namespace BrumeServer
     {
         public BrumeServer brumeServer;
 
-        private static readonly NetworkSpellManager instance;
+        private static NetworkSpellManager instance;
         public static NetworkSpellManager Instance { get { return instance; } }
 
         static NetworkSpellManager()
@@ -22,6 +22,7 @@ namespace BrumeServer
 
         public NetworkSpellManager()
         {
+            instance = this;
         }
 
         internal void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)

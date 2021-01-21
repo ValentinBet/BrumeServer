@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
     <Compile Include="Factory.cs" />
+    <Compile Include="Interactible.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="NetworkManagers\NetworkSpellManager.cs" />
     <Compile Include="Room\ChampSelect.cs" />

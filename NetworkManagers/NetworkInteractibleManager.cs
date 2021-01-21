@@ -3,6 +3,7 @@ using DarkRift.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static BrumeServer.GameData;
@@ -13,12 +14,14 @@ namespace BrumeServer
     {
         public BrumeServer brumeServer;
 
-        private static readonly NetworkInteractibleManager instance;
+        private static NetworkInteractibleManager instance;
         public static NetworkInteractibleManager Instance { get { return instance; } }
-
         static NetworkInteractibleManager() { }
 
-        public NetworkInteractibleManager() { }
+        public NetworkInteractibleManager()
+        {
+            instance = this;
+        }
 
         internal void MessageReceivedFromClient(object sender, MessageReceivedEventArgs e)
         {
@@ -31,15 +34,15 @@ namespace BrumeServer
                 }
                 else if (message.Tag == Tags.TryCaptureInteractible)
                 {
-                    TryCaptureInteractible(sender, e);
+                    TryCaptureInteractibleReceiver(sender, e);
+                }
+                else if (message.Tag == Tags.QuitInteractibleZone)
+                {
+                    QuitInteractibleZone(sender, e);
                 }
                 else if (message.Tag == Tags.CaptureProgressInteractible)
                 {
                     CaptureProgressInteractible(sender, e);
-                }
-                else if (message.Tag == Tags.CaptureInteractible)
-                {
-                    CaptureInteractible(sender, e);
                 }
                 else if (message.Tag == Tags.LaunchWard)
                 {
@@ -72,6 +75,7 @@ namespace BrumeServer
             }
         }
 
+
         private void UnlockInteractible(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
@@ -101,35 +105,82 @@ namespace BrumeServer
             }
         }
 
-        private void TryCaptureInteractible(object sender, MessageReceivedEventArgs e)
+        private void TryCaptureInteractibleReceiver(object sender, MessageReceivedEventArgs e)
         {
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _altarID = reader.ReadUInt16();
+
+                    ushort _interID = reader.ReadUInt16();
                     ushort team = reader.ReadUInt16();
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    InteractibleType type = (InteractibleType)reader.ReadUInt16();
+                    Vector3 pos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+                    Room room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
+
+                    room.TryCaptureNewInteractible(_interID, team, pos, e.Client.ID, type);
+                }
+            }
+        }
+
+
+
+        public void TryCaptureInteractible(ushort _interID, Player player)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                Writer.Write(_interID);
+                Writer.Write(player.ID);
+
+                Room room = brumeServer.rooms[player.Room.ID];
+
+                using (Message Message = Message.Create(Tags.TryCaptureInteractible, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in room.Players)
                     {
-                        // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
-
-                        Writer.Write(_altarID);
-                        Writer.Write(team);
-
-                        using (Message Message = Message.Create(Tags.TryCaptureInteractible, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                     }
                 }
             }
         }
+
+        public void StopCapturing(ushort _interID, Room room)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room SAUF LENVOYEUR
+
+                Writer.Write(_interID);
+
+                using (Message Message = Message.Create(Tags.StopCaptureInteractible, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in room.Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+
+
+        private void QuitInteractibleZone(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _interID = reader.ReadUInt16();
+
+                    Room room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
+
+                    room.QuitInteractibleZone(_interID, e.Client.ID);
+                }
+            }
+        }
+
 
         private void CaptureProgressInteractible(object sender, MessageReceivedEventArgs e)
         {
@@ -140,77 +191,78 @@ namespace BrumeServer
                     ushort _ID = reader.ReadUInt16();
                     float progress = reader.ReadSingle();
 
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_ID);
-                        Writer.Write(progress);
+                    Room room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
 
-                        using (Message Message = Message.Create(Tags.CaptureProgressInteractible, Writer))
+                    room.InteractibleCaptureProgress(_ID, progress);
+
+
+                }
+            }
+        }
+
+
+
+        public void SendInteractibleProgress(ushort _interID, ushort _senderID, float totalProgress, Room room)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(_interID);
+                Writer.Write(totalProgress);
+
+                using (Message Message = Message.Create(Tags.CaptureProgressInteractible, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in room.Players)
+                    {
+                        if (client.Key.ID != _senderID)
                         {
-                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Unreliable);
-                                }
-                            }
+                            client.Key.SendMessage(Message, SendMode.Unreliable);
                         }
                     }
                 }
             }
         }
 
-        private void CaptureInteractible(object sender, MessageReceivedEventArgs e)
+
+        public void CaptureInteractible(ushort _interID, Player _capturingPlayer, InteractibleType type, Room room)
         {
-            using (Message message = e.GetMessage() as Message)
+            switch (type)
             {
-                using (DarkRiftReader reader = message.GetReader())
+                case InteractibleType.none:
+                    Log.Message("Interactible type == none !", MessageType.Warning);
+                    break;
+                case InteractibleType.Altar:
+                    room.StartAltarTimer();
+                    break;
+                case InteractibleType.VisionTower:
+                    room.StartNewVisionTowerTimer(_interID);
+                    break;
+                case InteractibleType.Frog:
+                    room.StartNewFrogTimer(_interID);
+                    break;
+                case InteractibleType.ResurectAltar:
+                    break;
+                case InteractibleType.HealthPack:
+                    room.StartHealthPackTimer(_interID);
+                    break;
+                default:
+                    throw new Exception("Interactible type not existing");
+            }
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(_interID);
+                Writer.Write(_capturingPlayer.ID);
+
+                using (Message Message = Message.Create(Tags.CaptureInteractible, Writer))
                 {
-                    ushort _ID = reader.ReadUInt16();
-                    ushort team = reader.ReadUInt16();
-                    InteractibleType type = (InteractibleType)reader.ReadUInt16();
-
-                    switch (type)
+                    foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[_capturingPlayer.Room.ID].Players)
                     {
-                        case InteractibleType.none:
-                            Log.Message("Interactible type == none !", MessageType.Warning);
-                            break;
-                        case InteractibleType.Altar:
-                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartAltarTimer();
-                            break;
-                        case InteractibleType.VisionTower:
-                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewVisionTowerTimer(_ID);
-                            break;
-                        case InteractibleType.Frog:
-                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartNewFrogTimer(_ID);
-                            break;
-                        case InteractibleType.ResurectAltar:
-                            break;
-                        case InteractibleType.HealthPack:
-                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].StartHealthPackTimer(_ID);
-                            break;
-                        default:
-                            throw new Exception("Interactible type not existing");
-                    }
-
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_ID);
-                        Writer.Write(team);
-
-                        using (Message Message = Message.Create(Tags.CaptureInteractible, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
+                        client.Key.SendMessage(Message, SendMode.Reliable);
                     }
                 }
             }
+
+
         }
 
         private void LaunchWard(object sender, MessageReceivedEventArgs e)
