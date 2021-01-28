@@ -20,6 +20,7 @@ namespace BrumeServer
 
         public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
         public Dictionary<NetworkTimer, ushort> healthPackTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
+        public Dictionary<NetworkTimer, ushort> ultPickupTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
         public Dictionary<NetworkTimer, ushort> towerTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
 
         public RoomTimers(Room room)
@@ -73,6 +74,13 @@ namespace BrumeServer
             foreach (KeyValuePair<NetworkTimer, ushort> timer in healthPackTemporaryTimers)
             {
                 timer.Key.Elapsed -= (sender, e) => HealthPackTimerElapsed(sender, e, timer.Value, timer.Key);
+
+                timer.Key.Stop();
+                timer.Key.Dispose();
+            }
+            foreach (KeyValuePair<NetworkTimer, ushort> timer in ultPickupTemporaryTimers)
+            {
+                timer.Key.Elapsed -= (sender, e) => UltPickupTimerElapsed(sender, e, timer.Value, timer.Key);
 
                 timer.Key.Stop();
                 timer.Key.Dispose();
@@ -257,6 +265,27 @@ namespace BrumeServer
             room.VisionTowerTimerElapsed(ID);
             towerTemporaryTimers.Remove(newTowerTimer);
             newTowerTimer.Dispose();
+        }
+
+        internal void StartNewUltPickupTimer(ushort interID, int ultPickupRespawnTime)
+        {
+            NetworkTimer newUltPickupTimer = new NetworkTimer
+            {
+                AutoReset = false,
+                Interval = ultPickupRespawnTime,
+                Enabled = true
+            };
+            ultPickupTemporaryTimers.Add(newUltPickupTimer, interID);
+
+            newUltPickupTimer.Elapsed += (sender, e) => UltPickupTimerElapsed(sender, e, interID, newUltPickupTimer); // https://stackoverflow.com/questions/9977393/how-do-i-pass-an-object-into-a-timer-event
+        }
+
+        private void UltPickupTimerElapsed(Object source, ElapsedEventArgs ee, ushort ultPickupID, NetworkTimer newUltPickupTimer)
+        {
+            newUltPickupTimer.Elapsed -= (sender, e) => UltPickupTimerElapsed(sender, e, ultPickupID, newUltPickupTimer);
+            room.UltPickupTimerElapsed(ultPickupID);
+            ultPickupTemporaryTimers.Remove(newUltPickupTimer);
+            newUltPickupTimer.Dispose();
         }
     }
 }

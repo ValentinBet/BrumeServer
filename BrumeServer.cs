@@ -460,7 +460,7 @@ namespace BrumeServer
                 {
                     ushort value = reader.ReadUInt16();
 
-                    rooms[players[e.Client].Room.ID].SetUltimateStacks(e.Client.ID, value);
+                    rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
                 }
             }
         }

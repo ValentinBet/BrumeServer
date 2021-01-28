@@ -289,6 +289,8 @@ namespace BrumeServer
                 }
             }
         }
+
+
         internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId)
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
@@ -500,7 +502,25 @@ namespace BrumeServer
                 }
             }
         }
+        internal void StartUltPickupTimer(ushort interID)
+        {
+            Timers.StartNewUltPickupTimer(interID, GameData.UltPickupRespawnTime);
+        }
+        internal void UltPickupTimerElapsed(ushort interID)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room 
 
+                Writer.Write(interID);
+
+                using (Message Message = Message.Create(Tags.UltPickupTimerElapsed, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
 
 
         internal void StartNewVisionTowerTimer(ushort iD)
@@ -764,16 +784,16 @@ namespace BrumeServer
             }
         }
 
-        public void SetUltimateStacks(ushort id, ushort value)
+        public void AddUltimateStacks(ushort id, ushort value)
         {
-            if (GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter] < value)
-            {
-                InGameUltimateStacks[id] = GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
-            }
-            else
-            {
-                InGameUltimateStacks[id] = value;
-            }
+                if (GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter] < value)
+                {
+                    InGameUltimateStacks[id] = GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
+                }
+                else
+                {
+                    InGameUltimateStacks[id] += value;
+                }
 
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {

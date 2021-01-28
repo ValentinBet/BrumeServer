@@ -111,7 +111,6 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-
                     ushort _interID = reader.ReadUInt16();
                     ushort team = reader.ReadUInt16();
                     InteractibleType type = (InteractibleType)reader.ReadUInt16();
@@ -243,6 +242,9 @@ namespace BrumeServer
                     break;
                 case InteractibleType.HealthPack:
                     room.StartHealthPackTimer(_interID);
+                    break;
+                case InteractibleType.UltPickup:
+                    room.StartUltPickupTimer(_interID);
                     break;
                 default:
                     throw new Exception("Interactible type not existing");

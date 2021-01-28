@@ -34,6 +34,10 @@ namespace BrumeServer
                 if (message.Tag == Tags.InstantiateObject)
                 {
                     InstantiateObject(sender, e);
+                }                
+                if (message.Tag == Tags.InstantiateAutoKillObject)
+                {
+                    InstantiateAutoKillObject(sender, e);
                 }
                 else if (message.Tag == Tags.SynchroniseObject)
                 {
@@ -259,6 +263,64 @@ namespace BrumeServer
                 }
             }
         }
+
+
+        private void InstantiateAutoKillObject(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _ownerID = reader.ReadUInt16();
+                    ushort _objectID = reader.ReadUInt16();
+                    ushort _uniqueID = reader.ReadUInt16();
+
+                    float _ObjectPosx = reader.ReadSingle();
+                    float _ObjectPosz = reader.ReadSingle();
+
+                    float _ObjectRotationx = reader.ReadSingle();
+                    float _ObjectRotationy = reader.ReadSingle();
+                    float _ObjectRotationz = reader.ReadSingle();
+
+                    float _parameter = reader.ReadSingle();
+
+                    using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                    {
+                        writer.Write(_ownerID);
+                        writer.Write(_objectID);
+                        writer.Write(_uniqueID);
+
+                        writer.Write(_ObjectPosx);
+                        writer.Write(_ObjectPosz);
+
+                        writer.Write(_ObjectRotationx);
+                        writer.Write(_ObjectRotationy);
+                        writer.Write(_ObjectRotationz);
+
+                        writer.Write(_parameter);
+
+                        message.Serialize(writer);
+
+                        using (Message MessageW = Message.Create(Tags.InstantiateAutoKillObject, writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key.ID == e.Client.ID)
+                                {
+                                    continue;
+                                }
+                                client.Key.SendMessage(MessageW, SendMode.Reliable);
+
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+
+
 
         public ushort GenerateUniqueObjID()
         {
