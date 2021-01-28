@@ -44,6 +44,40 @@ namespace BrumeServer
                 else if (message.Tag == Tags.ForceFowSize)
                 {
                     ForceFowSize(sender, e);
+                }                
+                else if (message.Tag == Tags.SpellStep)
+                {
+                    SpellStep(sender, e);
+                }
+            }
+        }
+
+        private void SpellStep(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _spellIndex = reader.ReadUInt16();
+                    ushort _spellStep = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(e.Client.ID);
+                        Writer.Write(_spellIndex);
+                        Writer.Write(_spellStep);
+
+                        using (Message Message = Message.Create(Tags.SpellStep, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in brumeServer.rooms[brumeServer.players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key != e.Client)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

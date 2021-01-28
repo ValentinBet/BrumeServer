@@ -100,6 +100,7 @@
 
     //SPELLS CHARACTER
     public static readonly ushort LaunchSplouch = 2600;
+    public static readonly ushort SpellStep = 2700;
     // <<
 
     //Audio
