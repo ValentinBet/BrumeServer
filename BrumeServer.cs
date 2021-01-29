@@ -207,6 +207,10 @@ namespace BrumeServer
                 {
                     NewChatMessage(sender, e);
                 }
+                else if (message.Tag == Tags.WXSonarState)
+                {
+                    OnSonarState(sender, e);
+                }
             }
         }
 
@@ -994,6 +998,36 @@ namespace BrumeServer
                             foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
                             {
                                 client.Key.SendMessage(Message, SendMode.Reliable);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void OnSonarState(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _wxState = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_wxState);
+
+                        using (Message Message = Message.Create(Tags.WXSonarState, Writer))
+                        {
+                            Room currentRoom = rooms[players[e.Client].Room.ID];
+
+                            foreach (KeyValuePair<IClient, Player> client in currentRoom.Players)
+                            {
+                                if(e.Client.ID != client.Value.ID &&
+                                    currentRoom.GetPlayerByID(e.Client.ID).playerTeam == currentRoom.GetPlayerByID(client.Value.ID).playerTeam)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
                             }
                         }
                     }
