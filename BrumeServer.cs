@@ -1026,7 +1026,6 @@ namespace BrumeServer
                                 if(e.Client.ID != client.Value.ID &&
                                     currentRoom.GetPlayerByID(e.Client.ID).playerTeam == currentRoom.GetPlayerByID(client.Value.ID).playerTeam)
                                 {
-                                    Console.WriteLine(client.Value.Name + " id : " + client.Value.ID);
                                     client.Key.SendMessage(Message, SendMode.Reliable);
                                 }
                             }
