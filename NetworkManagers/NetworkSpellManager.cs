@@ -53,6 +53,29 @@ namespace BrumeServer
                 {
                     TpInServer(sender, e);
                 }
+                else if (message.Tag == Tags.SpotPlayer)
+                {
+                    SpotPlayer(sender, e);
+                }
+            }
+        }
+
+        private void SpotPlayer(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _id = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        using (Message Message = Message.Create(Tags.SpotPlayer, Writer))
+                        {
+                            brumeServer.rooms[brumeServer.players[e.Client].Room.ID].GetPlayerClientByID(_id).SendMessage(null, SendMode.Reliable);
+                        }
+                    }
+                }
             }
         }
 
