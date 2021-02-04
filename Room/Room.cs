@@ -182,6 +182,8 @@ namespace BrumeServer
             Log.Message("Game Started in Room : " + ID);
         }
 
+
+
         public void PlayerJoinGameScene() // Un joueur rejoint la scene de jeu
         {
             if (GameInit)
@@ -454,13 +456,30 @@ namespace BrumeServer
         }
 
         #region Timers
+        public void StartGameTimer()
+        {
+            StartTimer();
+            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
+            Timers.StartGameInitTimer(GameData.GameInitTime, GameData.SpawnWallTime);
+            Timers.StartNewGameStopWatch();
+        }
 
         internal void GameInitTimerElapsed()
         {
-            StartAltarTimer();
-            UnlockAllVisionTowers();
+            AltarTimerElapsed();
+           //  UnlockAllVisionTowers(); DEPRECATED
         }
-
+        internal void WallTimerElapsed()
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.DynamicWallState, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
         internal void StartNewFrogTimer(ushort frogID)
         {
             Timers.StartNewFrogTimer(frogID, GameData.FrogRespawnTime);
@@ -557,6 +576,7 @@ namespace BrumeServer
         {
             ushort chosenAltar = Altars.GetRandomFreeAltar();
             Altars.ChooseAltar(chosenAltar);
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room
@@ -575,13 +595,7 @@ namespace BrumeServer
         {
         }
 
-        public void StartGameTimer()
-        {
-            StartTimer();
-            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
-            Timers.StartGameInitTimer(GameData.GameInitTime);
-            Timers.StartNewGameStopWatch();
-        }
+
         internal void SoulTimerElapsed()
         {
             ushort chosenBrume = (ushort)Factory.GenerateRandomNumber(0, GameData.BrumeCount);
@@ -839,5 +853,24 @@ namespace BrumeServer
             }
 
         }
+
+        public void NewServerChatMessage(string _message)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write((ushort)0);
+                Writer.Write(_message);
+                Writer.Write(true);
+
+                using (Message Message = Message.Create(Tags.NewChatMessage, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -57,7 +57,8 @@ namespace BrumeServer
 
         //<<
 
-        public static int GameInitTime = 15000; // mss
+        public static int SpawnWallTime = 7000; // mss
+        public static int GameInitTime = 3000; // mss
         public static int AltarLockTime = 10000; // ms
         public static int FrogRespawnTime = 30000; // ms
         public static int healthPackRespawnTime = 20000; // ms

@@ -664,7 +664,7 @@ namespace BrumeServer
 
                 }
             }
-
+            room.NewServerChatMessage(players[Eclient].Name + " QUIT");
             room.Players.Remove(Eclient);
 
             if (players[Eclient].IsInGameScene) // Si en game
@@ -992,6 +992,7 @@ namespace BrumeServer
                     {
                         Writer.Write(e.Client.ID);
                         Writer.Write(_message);
+                        Writer.Write(false);
 
                         using (Message Message = Message.Create(Tags.NewChatMessage, Writer))
                         {
@@ -1004,6 +1005,7 @@ namespace BrumeServer
                 }
             }
         }
+
 
         private void OnSonarState(object sender, MessageReceivedEventArgs e)
         {
@@ -1023,7 +1025,7 @@ namespace BrumeServer
 
                             foreach (KeyValuePair<IClient, Player> client in currentRoom.Players)
                             {
-                                if(e.Client.ID != client.Value.ID &&
+                                if (e.Client.ID != client.Value.ID &&
                                     currentRoom.GetPlayerByID(e.Client.ID).playerTeam == currentRoom.GetPlayerByID(client.Value.ID).playerTeam)
                                 {
                                     client.Key.SendMessage(Message, SendMode.Reliable);
@@ -1045,5 +1047,10 @@ namespace BrumeServer
                 }
             }
         }
+
+
+
     }
+
+
 }

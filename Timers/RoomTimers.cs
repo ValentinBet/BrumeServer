@@ -15,6 +15,7 @@ namespace BrumeServer
 
         public NetworkTimer altarTimer;
         public NetworkTimer gameInitTimer;
+        public NetworkTimer wallTimer;
         public NetworkTimer soulTimer;
         public Stopwatch gameTimer;
 
@@ -33,6 +34,13 @@ namespace BrumeServer
                 AutoReset = false
             };
             gameInitTimer.Elapsed += GameInitTimerElapsed;
+
+            // wallTimer
+            wallTimer = new NetworkTimer
+            {
+                AutoReset = false
+            };
+            wallTimer.Elapsed += WallTimerElapsed;
 
             // AltarTimer
             altarTimer = new NetworkTimer
@@ -58,6 +66,7 @@ namespace BrumeServer
         public void StopTimersInstantly(bool finalize = false)
         {
             gameInitTimer.Enabled = false;
+            wallTimer.Enabled = false;
             altarTimer.Enabled = false;
             soulTimer.Enabled = false;
 
@@ -102,15 +111,17 @@ namespace BrumeServer
         private void FinalizeTimer()
         {
             gameInitTimer.Elapsed -= GameInitTimerElapsed;
+            wallTimer.Elapsed -= GameInitTimerElapsed;
             altarTimer.Elapsed -= AltarTimerElapsed;
             soulTimer.Elapsed -= SoulTimerElapsed;
 
             gameInitTimer.Dispose();
+            wallTimer.Dispose();
             altarTimer.Dispose();
             soulTimer.Dispose();
         }
 
-        public void StartGameInitTimer(float time = 1000)
+        public void StartGameInitTimer(float time = 1000, float wallTime = 1000)
         {
             if (gameInitTimer.Enabled)
             {
@@ -120,6 +131,15 @@ namespace BrumeServer
             gameInitTimer.Interval = time;
 
             gameInitTimer.Enabled = true;
+
+            if (wallTimer.Enabled)
+            {
+                throw new Exception("DEMANDE DE CREATION DE GameInitTimer AVANT LA FIN DU PRECEDENT");
+            }
+
+            wallTimer.Interval = time;
+
+            wallTimer.Enabled = true;
         }
 
         public double GetGameInitTimerRemainingTime()
@@ -134,6 +154,16 @@ namespace BrumeServer
         }
 
 
+        public double GetWallTimerRemainingTime()
+        {
+            return wallTimer.TimeLeft;
+        }
+
+        public void WallTimerElapsed(Object source, ElapsedEventArgs e)
+        {
+            room.WallTimerElapsed();
+            // + Event dans le NetworkTimer
+        }
         public void StartNewSoulTimer(float time = 1000)
         {
             if (soulTimer.Enabled)

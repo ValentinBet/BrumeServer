@@ -60,14 +60,31 @@ namespace BrumeServer
         {
             using (Message message = e.GetMessage() as Message)
             {
+                float _tpXPos = 0;
+                float _tpZPos = 0;
+
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     bool _tp = reader.ReadBoolean();
+
+                    if (_tp)
+                    {
+                        _tpXPos = reader.ReadSingle();
+                        _tpZPos = reader.ReadSingle();
+
+                        brumeServer.players[e.Client].SetPos(_tpXPos, _tpZPos);
+                    }
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
                         Writer.Write(e.Client.ID);
                         Writer.Write(_tp);
+
+                        if (_tp)
+                        {
+                            Writer.Write(_tpXPos);
+                            Writer.Write(_tpZPos);
+                        }
 
                         using (Message Message = Message.Create(Tags.Tp, Writer))
                         {
