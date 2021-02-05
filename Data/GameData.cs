@@ -50,24 +50,24 @@ namespace BrumeServer
         };
 
         public static readonly Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
-            { Character.shili, 5 },
-            { Character.A, 6 },
+            { Character.shili, 7 },
+            { Character.A, 7 },
             { Character.B, 7 }
         };
 
         //<<
 
-        public static int SpawnWallTime = 7000; // mss
-        public static int GameInitTime = 3000; // mss
-        public static int AltarLockTime = 10000; // ms
+        public static int SpawnWallTime = 15000; // mss
+        public static int GameInitTime = 5000; // mss
+        public static int AltarLockTime = 15000; // ms
         public static int FrogRespawnTime = 30000; // ms
         public static int healthPackRespawnTime = 20000; // ms
-        public static int UltPickupRespawnTime = 5000; // ms
+        public static int UltPickupRespawnTime = 30000; // ms
         public static int VisionTowerReactivateTime = 20000; // ms       
         public static int BrumeSoulRespawnMinTime = 5000; // ms       
         public static int BrumeSoulRespawnMaxTime = 7000; // ms       
            
-        public static int RoundToWin = 3;
+        public static int RoundToWin = 5;
         public static int BrumeCount = 9;
 
 

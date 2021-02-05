@@ -66,6 +66,7 @@ namespace BrumeServer
             assignedSpawn.Clear();
             Scores.Add(Team.blue, 0);
             Scores.Add(Team.red, 0);
+            InCaptureInteractible.Clear();
         }
 
 
@@ -387,6 +388,7 @@ namespace BrumeServer
             Altars.ResetAltars();
             assignedSpawn.Clear();
             SetSpawnAssignement();
+            InCaptureInteractible.Clear();
 
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
@@ -590,11 +592,6 @@ namespace BrumeServer
                 }
             }
         }
-
-        internal void AddUltimatePointToAllTeam(ushort iD, ushort value)
-        {
-        }
-
 
         internal void SoulTimerElapsed()
         {
@@ -800,7 +797,7 @@ namespace BrumeServer
 
         public void AddUltimateStacks(ushort id, ushort value)
         {
-                if (GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter] < value)
+                if ( InGameUltimateStacks[id] + value > GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter])
                 {
                     InGameUltimateStacks[id] = GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
                 }
@@ -814,9 +811,31 @@ namespace BrumeServer
                 writer.Write(id);
                 writer.Write(InGameUltimateStacks[id]);
 
-                using (Message message = Message.Create(Tags.AddUltimatePoint, writer))
+                using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // SET
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == GetPlayerByID(id).playerTeam))
+                        client.Key.SendMessage(message, SendMode.Reliable);
+                }
+            }
+        }
+        internal void UseUltimateStacks(ushort iD, ushort value)
+        {
+            if ((int)InGameUltimateStacks[iD] - (int)value <= 0)
+            {
+                InGameUltimateStacks[iD] = 0;
+            } else
+            {
+                InGameUltimateStacks[iD] -= value;
+            }
+
+            using (DarkRiftWriter writer = DarkRiftWriter.Create())
+            {
+                writer.Write(iD);
+                writer.Write(InGameUltimateStacks[iD]);
+
+                using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // CAUSE ADD = SET
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == GetPlayerByID(iD).playerTeam))
                         client.Key.SendMessage(message, SendMode.Reliable);
                 }
             }
@@ -826,7 +845,7 @@ namespace BrumeServer
         {
             foreach (KeyValuePair<IClient,Player> p in Players.Where(x => x.Value.playerTeam == team))
             {
-                if (GameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter] < value)
+                if (GameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter] < InGameUltimateStacks[p.Key.ID] + value)
                 {
                     InGameUltimateStacks[p.Key.ID] = GameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter];
                 }
@@ -841,7 +860,7 @@ namespace BrumeServer
                 writer.Write((ushort)team);
                 writer.Write(value);
 
-                using (Message message = Message.Create(Tags.AddUltimatePointToAllTeam, writer))
+                using (Message message = Message.Create(Tags.AddUltimatePointToAllTeam, writer)) // ADD
                 {
                     Log.Message(team.ToString());
                     foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == team))

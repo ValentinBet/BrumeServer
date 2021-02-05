@@ -42,6 +42,8 @@ namespace BrumeServer
             }
 
             playerTriggeredInZone.Add(player);
+            playerTriggeredInZone.RemoveAll(item => item == null);
+
             CheckCapture(player);
         }
         public void RemovePlayerInZone(Player player)
@@ -50,6 +52,7 @@ namespace BrumeServer
             {
                 playerTriggeredInZone.Remove(player);
                 playerTriggeredInZone.RemoveAll(item => item == null);
+
                 CheckCapture();
             }
         }
@@ -58,7 +61,6 @@ namespace BrumeServer
         {
             if (player != null)
             {
-
                 if (playerTriggeredInZone.Count == 1 && playerTriggeredInZone.Contains(player)) // SI CEST LE SEUL JOUEUR
                 {
                     TryCapture(player);
@@ -90,7 +92,6 @@ namespace BrumeServer
                         }
                         else
                         {
-
                             capturingPlayer = GetClosestPlayer();
                             TryCapture(capturingPlayer);
                             ResetCapture();

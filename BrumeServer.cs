@@ -195,6 +195,10 @@ namespace BrumeServer
                 {
                     AddUltimatePoint(sender, e);
                 }
+                else if (message.Tag == Tags.UseUltPoint)
+                {
+                    UseUltPoint(sender, e);
+                }
                 else if (message.Tag == Tags.AddUltimatePointToAllTeam)
                 {
                     AddUltimatePointToAllTeam(sender, e);
@@ -244,6 +248,7 @@ namespace BrumeServer
                     Character _character = (Character)reader.ReadUInt16();
 
                     // -------
+                    rooms[players[e.Client].Room.ID].AddUltimateStacks(_killerID, 1);
 
                     ushort _roomID = players[e.Client].Room.ID;
 
@@ -465,6 +470,19 @@ namespace BrumeServer
                     ushort value = reader.ReadUInt16();
 
                     rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
+                }
+            }
+        }
+
+        private void UseUltPoint(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort value = reader.ReadUInt16();
+
+                    rooms[players[e.Client].Room.ID].UseUltimateStacks(e.Client.ID, value);
                 }
             }
         }
@@ -844,6 +862,7 @@ namespace BrumeServer
                 }
             }
         }
+
         #endregion
 
         #region Game
@@ -987,6 +1006,7 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
                     string _message = reader.ReadString();
+                    bool _teamOnly = reader.ReadBoolean();
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
@@ -996,8 +1016,14 @@ namespace BrumeServer
 
                         using (Message Message = Message.Create(Tags.NewChatMessage, Writer))
                         {
+
                             foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
                             {
+                                if (_teamOnly && players[e.Client].playerTeam != client.Value.playerTeam)
+                                {
+                                    continue;
+                                }
+
                                 client.Key.SendMessage(Message, SendMode.Reliable);
                             }
                         }
