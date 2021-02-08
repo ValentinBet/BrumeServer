@@ -163,7 +163,7 @@ namespace BrumeServer
             {
                 player.Value.IsReady = false;
             }
-
+            InitializeUltimateDic();
             SetAndSendInGameUniqueIDs();
             SetSpawnAssignement();
 
@@ -211,7 +211,7 @@ namespace BrumeServer
                 }
             }
             GameInit = true;
-            InitializeUltimateDic();
+
             champSelect.ResetData();
             StartGameTimer();
         }
