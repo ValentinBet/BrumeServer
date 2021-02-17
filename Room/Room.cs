@@ -380,7 +380,7 @@ namespace BrumeServer
         {
             if (!GameInit)
             {
-                Log.Message("NEW ROUND ASKED IN A NONE INIT GAME", MessageType.Error);
+                Log.Message("NEW ROUND ASKED MULTIPLE TIMES", MessageType.Error);
                 return;
             }
 
@@ -535,7 +535,7 @@ namespace BrumeServer
 
                 Writer.Write(interID);
 
-                using (Message Message = Message.Create(Tags.UltPickupTimerElapsed, Writer))
+                using (Message Message = Message.Create(Tags.UnlockInteractible, Writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
                         client.Key.SendMessage(Message, SendMode.Reliable);

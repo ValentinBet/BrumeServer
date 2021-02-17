@@ -268,6 +268,8 @@ namespace BrumeServer
                         }
                         return;
                     }
+
+
                     Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
 
                     networkObjectsManager.ServerInstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
