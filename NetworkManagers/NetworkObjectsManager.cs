@@ -164,7 +164,7 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    ushort _id = reader.ReadUInt16();
+                    ushort _idType = reader.ReadUInt16();
                     float _posX = reader.ReadSingle();
                     float _posZ = reader.ReadSingle();
 
@@ -174,7 +174,8 @@ namespace BrumeServer
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
-                        Writer.Write(_id);
+                        Writer.Write(e.Client.ID);
+                        Writer.Write(_idType);
                         Writer.Write(_posX);
                         Writer.Write(_posZ);
                         Writer.Write(_rota);
