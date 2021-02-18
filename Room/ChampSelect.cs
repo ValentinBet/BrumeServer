@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static BrumeServer.GameData;
+using static BrumeServer.ServerData;
 
 namespace BrumeServer
 {
@@ -23,7 +23,7 @@ namespace BrumeServer
             RedTeamCharacterPlayerPair.Clear();
             BlueTeamCharacterPlayerPair.Clear();
 
-            foreach (KeyValuePair<Character, Player> item in GameData.ChampSelectSlots)
+            foreach (KeyValuePair<Character, Player> item in ServerData.ChampSelectSlots)
             {
                 RedTeamCharacterPlayerPair.Add(item.Key, item.Value);
                 BlueTeamCharacterPlayerPair.Add(item.Key, item.Value);

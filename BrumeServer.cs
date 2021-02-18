@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static BrumeServer.GameData;
+using static BrumeServer.ServerData;
 using System.Runtime.CompilerServices;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
@@ -22,6 +22,8 @@ namespace BrumeServer
         public override bool ThreadSafe => false;
         public override Version Version => new Version(1, 0, 2);
 
+        public GameData gameData = new GameData();
+
         public Dictionary<IClient, Player> players = new Dictionary<IClient, Player>();
         public Dictionary<ushort, Room> rooms = new Dictionary<ushort, Room>();
 
@@ -31,8 +33,12 @@ namespace BrumeServer
         private NetworkInteractibleManager networkInteractibleManager = new NetworkInteractibleManager();
         private NetworkSpellManager networkSpellManager = new NetworkSpellManager();
 
+
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
+
+            gameData.Init();
+
             networkAnimationManager.brumeServer = this;
             networkObjectsManager.brumeServer = this;
             networkInteractibleManager.brumeServer = this;
@@ -272,7 +278,7 @@ namespace BrumeServer
 
                     Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
 
-                    networkObjectsManager.ServerInstantiateObject(e.Client, GameData.resObjInstansiateID, playerPos, Vector3.Zero);
+                    networkObjectsManager.ServerInstantiateObject(e.Client, ServerData.resObjInstansiateID, playerPos, Vector3.Zero);
 
                     using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                     {
@@ -531,6 +537,7 @@ namespace BrumeServer
             lastRoomID += 1;
 
             Room newRoom = new Room(
+            this,
             lastRoomID,
             players[e.Client].Name + "'s room",
             players[e.Client],

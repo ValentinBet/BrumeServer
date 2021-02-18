@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static BrumeServer.GameData;
+using static BrumeServer.ServerData;
 
 namespace BrumeServer
 {
@@ -15,7 +15,7 @@ namespace BrumeServer
         public ushort MaxPlayers { get; set; }
         public Player Host { get; set; }
         public Dictionary<IClient, Player> Players = new Dictionary<IClient, Player>();
-
+        public BrumeServer brumeServerRef;
         public RoomTimers Timers;
         public RoomAltars Altars;
         public ChampSelect champSelect;
@@ -31,8 +31,10 @@ namespace BrumeServer
         public bool GameInit = false;
 
 
-        public Room(ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
+        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
         {
+            this.brumeServerRef = brumeServer;
+
             Timers = new RoomTimers(this);
             Altars = new RoomAltars();
             champSelect = new ChampSelect();
@@ -395,7 +397,7 @@ namespace BrumeServer
                 player.Value.IsInGameScene = false;
             }
 
-            if (Scores[(Team)team] == GameData.RoundToWin - 1)
+            if (Scores[(Team)team] == brumeServerRef.gameData.RoundToWin - 1)
             {
                 StopGame(team);
                 return;
@@ -461,8 +463,8 @@ namespace BrumeServer
         public void StartGameTimer()
         {
             StartTimer();
-            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
-            Timers.StartGameInitTimer(GameData.GameInitTime, GameData.SpawnWallTime);
+            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(brumeServerRef.gameData.BrumeSoulRespawnMinTime, brumeServerRef.gameData.BrumeSoulRespawnMaxTime));
+            Timers.StartGameInitTimer(brumeServerRef.gameData.GameInitTime, brumeServerRef.gameData.SpawnWallTime);
             Timers.StartNewGameStopWatch();
         }
 
@@ -484,7 +486,7 @@ namespace BrumeServer
         }
         internal void StartNewFrogTimer(ushort frogID)
         {
-            Timers.StartNewFrogTimer(frogID, GameData.FrogRespawnTime);
+            Timers.StartNewFrogTimer(frogID, brumeServerRef.gameData.FrogRespawnTime);
         }
 
         internal void FrogTimerElapsed(ushort frogID)
@@ -505,7 +507,7 @@ namespace BrumeServer
 
         internal void StartHealthPackTimer(ushort healthPackID)
         {
-            Timers.StartNewHealthPackTimer(healthPackID, GameData.healthPackRespawnTime);
+            Timers.StartNewHealthPackTimer(healthPackID, brumeServerRef.gameData.healthPackRespawnTime);
         }
 
         internal void HealthPackTimerElapsed(ushort healthPackID)
@@ -525,7 +527,7 @@ namespace BrumeServer
         }
         internal void StartUltPickupTimer(ushort interID)
         {
-            Timers.StartNewUltPickupTimer(interID, GameData.UltPickupRespawnTime);
+            Timers.StartNewUltPickupTimer(interID, brumeServerRef.gameData.UltPickupRespawnTime);
         }
         internal void UltPickupTimerElapsed(ushort interID)
         {
@@ -546,7 +548,7 @@ namespace BrumeServer
 
         internal void StartNewVisionTowerTimer(ushort iD)
         {
-            Timers.StartNewVisionTowerTimer(iD, GameData.VisionTowerReactivateTime);
+            Timers.StartNewVisionTowerTimer(iD, brumeServerRef.gameData.VisionTowerReactivateTime);
         }
 
         internal void VisionTowerTimerElapsed(ushort ID)
@@ -571,7 +573,7 @@ namespace BrumeServer
 
         public void StartAltarTimer()
         {
-            Timers.StartNewAltarTimer(GameData.AltarLockTime);
+            Timers.StartNewAltarTimer(brumeServerRef.gameData.AltarLockTime);
         }
 
         public void AltarTimerElapsed()
@@ -595,7 +597,7 @@ namespace BrumeServer
 
         internal void SoulTimerElapsed()
         {
-            ushort chosenBrume = (ushort)Factory.GenerateRandomNumber(0, GameData.BrumeCount);
+            ushort chosenBrume = (ushort)Factory.GenerateRandomNumber(0, brumeServerRef.gameData.BrumeCount);
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 // Recu par les joueurs déja présent dans la room
@@ -609,7 +611,7 @@ namespace BrumeServer
                 }
             }
 
-            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(GameData.BrumeSoulRespawnMinTime, GameData.BrumeSoulRespawnMaxTime));
+            Timers.StartNewSoulTimer(Factory.GenerateRandomNumber(brumeServerRef.gameData.BrumeSoulRespawnMinTime, brumeServerRef.gameData.BrumeSoulRespawnMaxTime));
         }
 
         #endregion
@@ -797,9 +799,9 @@ namespace BrumeServer
 
         public void AddUltimateStacks(ushort id, ushort value)
         {
-                if ( InGameUltimateStacks[id] + value > GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter])
+                if ( InGameUltimateStacks[id] + value > brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter])
                 {
-                    InGameUltimateStacks[id] = GameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
+                    InGameUltimateStacks[id] = brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
                 }
                 else
                 {
@@ -845,9 +847,9 @@ namespace BrumeServer
         {
             foreach (KeyValuePair<IClient,Player> p in Players.Where(x => x.Value.playerTeam == team))
             {
-                if (GameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter] < InGameUltimateStacks[p.Key.ID] + value)
+                if (brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter] < InGameUltimateStacks[p.Key.ID] + value)
                 {
-                    InGameUltimateStacks[p.Key.ID] = GameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter];
+                    InGameUltimateStacks[p.Key.ID] = brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter];
                 }
                 else
                 {

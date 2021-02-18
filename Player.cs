@@ -3,7 +3,7 @@ using DarkRift.Server;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static BrumeServer.GameData;
+using static BrumeServer.ServerData;
 
 namespace BrumeServer
 {

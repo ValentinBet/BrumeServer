@@ -18,7 +18,7 @@ namespace BrumeServer
 
         public void InitAltars()
         {
-            foreach (ushort alrID in GameData.altarsID)
+            foreach (ushort alrID in ServerData.altarsID)
             {
                 altarID.Add(alrID);
             }

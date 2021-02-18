@@ -37,6 +37,9 @@
     <Reference Include="DarkRift.Server">
       <HintPath>Darkrift\DarkRift.Server.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
@@ -50,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BrumeServer.cs" />
+    <Compile Include="Data\GameData.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Interactible.cs" />
     <Compile Include="Log.cs" />
@@ -67,7 +71,10 @@
     <Compile Include="Player.cs" />
     <Compile Include="Timers\RoomTimers.cs" />
     <Compile Include="Data\Tags.cs" />
-    <Compile Include="Data\GameData.cs" />
+    <Compile Include="Data\ServerData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
