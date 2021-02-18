@@ -14,6 +14,7 @@ namespace BrumeServer
         public string Name { get; set; }
         public Room Room { get; set; }
         public bool IsReady { get; set; }
+        public ushort ultStacks { get; set; }
         public float X { get; set; }
         public float Z { get; set; }
 
@@ -35,6 +36,7 @@ namespace BrumeServer
             this.IsHost = e.Reader.ReadBoolean();
             this.Name = e.Reader.ReadString();
             this.IsReady = e.Reader.ReadBoolean();
+            this.ultStacks = e.Reader.ReadUInt16();
             this.playerTeam = (Team)e.Reader.ReadUInt16();
             this.playerCharacter = (Character)e.Reader.ReadUInt16();
         }
@@ -45,6 +47,7 @@ namespace BrumeServer
             e.Writer.Write(IsHost);
             e.Writer.Write(Name);
             e.Writer.Write(IsReady);
+            e.Writer.Write(ultStacks);
             e.Writer.Write((ushort)playerTeam);
             e.Writer.Write((ushort)playerCharacter);
         }

@@ -22,7 +22,6 @@ namespace BrumeServer
         // InGame >>
         public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
         public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
-        public Dictionary<ushort, ushort> InGameUltimateStacks = new Dictionary<ushort, ushort>();
         public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
         public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
         // <<
@@ -64,7 +63,12 @@ namespace BrumeServer
             champSelect.ResetData();
             Scores.Clear();
             InGameUniqueIDList.Clear();
-            InGameUltimateStacks.Clear();
+
+            foreach (Player p in Players.Values)
+            {
+                p.ultStacks = 0;
+            }
+
             assignedSpawn.Clear();
             Scores.Add(Team.blue, 0);
             Scores.Add(Team.red, 0);
@@ -165,7 +169,7 @@ namespace BrumeServer
             {
                 player.Value.IsReady = false;
             }
-            InitializeUltimateDic();
+            // InitializeUltimateDic();
             SetAndSendInGameUniqueIDs();
             SetSpawnAssignement();
 
@@ -787,53 +791,57 @@ namespace BrumeServer
             assignedSpawn.Add(Team.blue, blueTeamAssignement);
         }
 
-        private void InitializeUltimateDic()
-        {
-            InGameUltimateStacks.Clear();
+        //private void InitializeUltimateDic()
+        //{
+        //    InGameUltimateStacks.Clear();
 
-            foreach (KeyValuePair<IClient, Player> player in Players)
-            {
-                InGameUltimateStacks.Add(player.Key.ID, 0);
-            }
-        }
+        //    foreach (KeyValuePair<IClient, Player> player in Players)
+        //    {
+        //        InGameUltimateStacks.Add(player.Key.ID, 0);
+        //    }
+        //}
 
         public void AddUltimateStacks(ushort id, ushort value)
         {
-                if ( InGameUltimateStacks[id] + value > brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter])
+
+            Player _p = GetPlayerByID(id);
+                if (_p.ultStacks + value > brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter])
                 {
-                    InGameUltimateStacks[id] = brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(id).playerCharacter];
+                _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
                 }
                 else
                 {
-                    InGameUltimateStacks[id] += value;
+                _p.ultStacks += value;
                 }
 
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
                 writer.Write(id);
-                writer.Write(InGameUltimateStacks[id]);
+                writer.Write(_p.ultStacks);
 
                 using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // SET
                 {
-                    foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == GetPlayerByID(id).playerTeam))
+                    foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == _p.playerTeam))
                         client.Key.SendMessage(message, SendMode.Reliable);
                 }
             }
         }
         internal void UseUltimateStacks(ushort iD, ushort value)
         {
-            if ((int)InGameUltimateStacks[iD] - (int)value <= 0)
+            Player _p = GetPlayerByID(iD);
+
+            if ((int)_p.ultStacks - (int)value <= 0)
             {
-                InGameUltimateStacks[iD] = 0;
+                _p.ultStacks = 0;
             } else
             {
-                InGameUltimateStacks[iD] -= value;
+                _p.ultStacks -= value;
             }
 
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
                 writer.Write(iD);
-                writer.Write(InGameUltimateStacks[iD]);
+                writer.Write(_p.ultStacks);
 
                 using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // CAUSE ADD = SET
                 {
@@ -847,13 +855,15 @@ namespace BrumeServer
         {
             foreach (KeyValuePair<IClient,Player> p in Players.Where(x => x.Value.playerTeam == team))
             {
-                if (brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter] < InGameUltimateStacks[p.Key.ID] + value)
+                Player _p = GetPlayerByID(p.Key.ID);
+
+                if (brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter] < _p.ultStacks + value)
                 {
-                    InGameUltimateStacks[p.Key.ID] = brumeServerRef.gameData.ChampMaxUltStacks[GetPlayerByID(p.Key.ID).playerCharacter];
+                    _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
                 }
                 else
                 {
-                    InGameUltimateStacks[p.Key.ID] += value;
+                    _p.ultStacks += value;
                 }
             }
 
