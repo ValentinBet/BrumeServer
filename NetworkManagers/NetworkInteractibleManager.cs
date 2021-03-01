@@ -230,7 +230,7 @@ namespace BrumeServer
                     Log.Message("Interactible type == none !", MessageType.Warning);
                     break;
                 case InteractibleType.Altar:
-                    room.StartAltarTimer();
+                    room.AltarCaptured(_capturingPlayer.playerTeam);
                     break;
                 case InteractibleType.VisionTower:
                     room.StartNewVisionTowerTimer(_interID);
@@ -245,6 +245,9 @@ namespace BrumeServer
                     break;
                 case InteractibleType.UltPickup:
                     room.StartUltPickupTimer(_interID);
+                    break;
+                case InteractibleType.EndZone:
+                    room.EndZoneCaptured(_capturingPlayer.playerTeam);
                     break;
                 default:
                     throw new Exception("Interactible type not existing");

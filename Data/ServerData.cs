@@ -29,7 +29,8 @@ namespace BrumeServer
             Frog = 3,
             ResurectAltar = 4, // DEPRECATED
             HealthPack = 5, // DEPRECATED
-            UltPickup = 6
+            UltPickup = 6,
+            EndZone = 7
         }
         public enum SpellStep : ushort
         {

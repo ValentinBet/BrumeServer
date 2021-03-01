@@ -35,7 +35,7 @@ namespace BrumeServer
             this.brumeServerRef = brumeServer;
 
             Timers = new RoomTimers(this);
-            Altars = new RoomAltars();
+            Altars = new RoomAltars(this);
             champSelect = new ChampSelect();
 
             this.ID = ID;
@@ -47,6 +47,7 @@ namespace BrumeServer
             Scores.Add(Team.blue, 0);
             Scores.Add(Team.red, 0);
         }
+
 
         public Room() { }
 
@@ -300,6 +301,7 @@ namespace BrumeServer
         }
 
 
+
         internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId)
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
@@ -382,6 +384,20 @@ namespace BrumeServer
             }
         }
 
+        internal void StartRoundFinalPhase()
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                using (Message Message = Message.Create(Tags.RoundFinalPhase, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                    {
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
         internal void NewRound(ushort team)
         {
             if (!GameInit)
@@ -391,9 +407,6 @@ namespace BrumeServer
             }
 
             Timers.StopTimersInstantly();
-            Altars.ResetAltars();
-            assignedSpawn.Clear();
-            SetSpawnAssignement();
             InCaptureInteractible.Clear();
 
             foreach (KeyValuePair<IClient, Player> player in Players)
@@ -401,15 +414,23 @@ namespace BrumeServer
                 player.Value.IsInGameScene = false;
             }
 
-            if (Scores[(Team)team] == brumeServerRef.gameData.RoundToWin - 1)
+            if (Altars.canUnlockMoreAltars)
+            {
+                Addpoints(team, 1);
+            } else
+            {
+                Addpoints(team, 2);
+            }
+
+            if (Scores[(Team)team] >= brumeServerRef.gameData.RoundToWin)
             {
                 StopGame(team);
                 return;
             }
-            else
-            {
-                Addpoints(team, 1);
-            }
+
+            Altars.ResetAltars();
+            assignedSpawn.Clear();
+            SetSpawnAssignement();
 
             GameInit = false;
 
@@ -575,9 +596,15 @@ namespace BrumeServer
             Log.Message("BrumeServer - RoomTimers generated for Room : " + ID);
         }
 
-        public void StartAltarTimer()
+        public void AltarCaptured(Team team)
         {
-            Timers.StartNewAltarTimer(brumeServerRef.gameData.AltarLockTime);
+            Altars.CaptureAltar(team);
+
+            if (Altars.canUnlockMoreAltars)
+            {
+                Timers.StartNewAltarTimer(brumeServerRef.gameData.AltarLockTime);
+            }
+
         }
 
         public void AltarTimerElapsed()
@@ -620,8 +647,7 @@ namespace BrumeServer
 
         #endregion
 
-
-        #region interactible
+        #region Interactible
 
         public void TryCaptureNewInteractible(ushort _interID, ushort team, System.Numerics.Vector3 pos, ushort iD, InteractibleType type)
         {
@@ -675,8 +701,15 @@ namespace BrumeServer
                 }
             }
         }
+
+        internal void EndZoneCaptured(Team team)
+        {
+            NewRound((ushort)team);
+        }
+
         #endregion
 
+        #region ChampSelect
         internal void TryPickCharacter(Character character, IClient Iclient)
         {
             if (champSelect.TryPickChamp(Players[Iclient].playerTeam, Players[Iclient], character)) // Si slot character libre
@@ -749,7 +782,9 @@ namespace BrumeServer
                 }
             }
         }
+        #endregion
 
+        #region Assignement
         internal void SetAndSendInGameUniqueIDs()
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
@@ -790,17 +825,9 @@ namespace BrumeServer
             assignedSpawn.Add(Team.red, redTeamAssignement);
             assignedSpawn.Add(Team.blue, blueTeamAssignement);
         }
+        #endregion
 
-        //private void InitializeUltimateDic()
-        //{
-        //    InGameUltimateStacks.Clear();
-
-        //    foreach (KeyValuePair<IClient, Player> player in Players)
-        //    {
-        //        InGameUltimateStacks.Add(player.Key.ID, 0);
-        //    }
-        //}
-
+        #region Ultimate
         public void AddUltimateStacks(ushort id, ushort value)
         {
 
@@ -826,6 +853,7 @@ namespace BrumeServer
                 }
             }
         }
+
         internal void UseUltimateStacks(ushort iD, ushort value)
         {
             Player _p = GetPlayerByID(iD);
@@ -884,7 +912,9 @@ namespace BrumeServer
             }
 
         }
+        #endregion
 
+        #region Chat
         public void NewServerChatMessage(string _message)
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -902,6 +932,6 @@ namespace BrumeServer
                 }
             }
         }
-
+        #endregion
     }
 }

@@ -23,8 +23,9 @@ namespace BrumeServer
         public int BrumeSoulRespawnMaxTime = 7000; // ms       
         public int RoundToWin = 5;
         public int BrumeCount = 9;
+        public int AltarCountNeededToWin = 2;
 
-        public readonly Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
+        public Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
             { Character.shili, 7 },
             { Character.A, 7 },
             { Character.B, 7 }
@@ -63,6 +64,8 @@ namespace BrumeServer
             this.BrumeSoulRespawnMaxTime = newGameData.BrumeSoulRespawnMaxTime;
             this.RoundToWin = newGameData.RoundToWin;
             this.BrumeCount = newGameData.BrumeCount;
+            this.AltarCountNeededToWin = newGameData.AltarCountNeededToWin;
+            this.ChampMaxUltStacks = newGameData.ChampMaxUltStacks;
 
             Log.Message("JSON Game Data loaded !");
         }
