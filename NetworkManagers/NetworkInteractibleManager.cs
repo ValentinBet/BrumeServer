@@ -230,7 +230,7 @@ namespace BrumeServer
                     Log.Message("Interactible type == none !", MessageType.Warning);
                     break;
                 case InteractibleType.Altar:
-                    room.AltarCaptured(_capturingPlayer.playerTeam);
+                    room.AltarCaptured(_capturingPlayer.playerTeam, _interID);
                     break;
                 case InteractibleType.VisionTower:
                     room.StartNewVisionTowerTimer(_interID);

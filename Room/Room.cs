@@ -384,10 +384,12 @@ namespace BrumeServer
             }
         }
 
-        internal void StartRoundFinalPhase()
+        internal void StartRoundFinalPhase(ushort altarID)
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
+                Writer.Write(altarID);
+
                 using (Message Message = Message.Create(Tags.RoundFinalPhase, Writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
@@ -596,9 +598,9 @@ namespace BrumeServer
             Log.Message("BrumeServer - RoomTimers generated for Room : " + ID);
         }
 
-        public void AltarCaptured(Team team)
+        public void AltarCaptured(Team team, ushort altarID)
         {
-            Altars.CaptureAltar(team);
+            Altars.CaptureAltar(team, altarID);
 
             if (Altars.canUnlockMoreAltars)
             {
