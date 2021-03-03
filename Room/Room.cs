@@ -24,6 +24,8 @@ namespace BrumeServer
         public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
         public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
         public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
+        public Team defendingEndZoneTeam;
+        public ushort endZoneAltarIDRef;
         // <<
 
         public bool IsStarted = false;
@@ -223,6 +225,7 @@ namespace BrumeServer
             StartGameTimer();
         }
 
+
         public void SpawnObjPlayer(ushort ID, bool resurect = false)
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
@@ -384,11 +387,15 @@ namespace BrumeServer
             }
         }
 
-        internal void StartRoundFinalPhase(ushort altarID)
+        internal void StartRoundFinalPhase(ushort altarID, Team team)
         {
+            defendingEndZoneTeam = team;
+            endZoneAltarIDRef = altarID;
+            Timers.StarEndZoneTimer( brumeServerRef.gameData.EndZoneTime);
+            
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
-                Writer.Write(altarID);
+                Writer.Write(endZoneAltarIDRef);
 
                 using (Message Message = Message.Create(Tags.RoundFinalPhase, Writer))
                 {
@@ -421,7 +428,14 @@ namespace BrumeServer
                 Addpoints(team, 1);
             } else
             {
-                Addpoints(team, 2);
+                if ((Team)team == defendingEndZoneTeam)
+                {
+                    Addpoints(team, 2);
+                } else
+                {
+                    Addpoints(team, 1);
+                }
+
             }
 
             if (Scores[(Team)team] >= brumeServerRef.gameData.RoundToWin)
@@ -433,7 +447,7 @@ namespace BrumeServer
             Altars.ResetAltars();
             assignedSpawn.Clear();
             SetSpawnAssignement();
-
+            defendingEndZoneTeam = Team.none;
             GameInit = false;
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -450,8 +464,6 @@ namespace BrumeServer
                         client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
-
-
         }
 
         public void Addpoints(ushort targetTeam, ushort value)
@@ -500,6 +512,17 @@ namespace BrumeServer
             AltarTimerElapsed();
            //  UnlockAllVisionTowers(); DEPRECATED
         }
+
+
+        internal void EndZoneTimerElapsed()
+        {
+            if (InCaptureInteractible.ContainsKey(endZoneAltarIDRef))
+            {
+                InCaptureInteractible[endZoneAltarIDRef].inOvertime = true;
+                InCaptureInteractible[endZoneAltarIDRef].CheckForEndZoneOvertime();
+            }
+        }
+
         internal void WallTimerElapsed()
         {
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())

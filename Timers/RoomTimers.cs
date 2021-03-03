@@ -17,6 +17,9 @@ namespace BrumeServer
         public NetworkTimer gameInitTimer;
         public NetworkTimer wallTimer;
         public NetworkTimer soulTimer;
+        public NetworkTimer endZoneTimer;
+
+
         public Stopwatch gameTimer;
 
         public Dictionary<NetworkTimer, ushort> frogTemporaryTimers = new Dictionary<NetworkTimer, ushort>();
@@ -35,6 +38,12 @@ namespace BrumeServer
             };
             gameInitTimer.Elapsed += GameInitTimerElapsed;
 
+            // endZoneTimer
+            endZoneTimer = new NetworkTimer
+            {
+                AutoReset = false
+            };
+            endZoneTimer.Elapsed += EndZoneTimerElapsed;
             // wallTimer
             wallTimer = new NetworkTimer
             {
@@ -66,6 +75,7 @@ namespace BrumeServer
         public void StopTimersInstantly(bool finalize = false)
         {
             gameInitTimer.Enabled = false;
+            endZoneTimer.Enabled = false;
             wallTimer.Enabled = false;
             altarTimer.Enabled = false;
             soulTimer.Enabled = false;
@@ -116,6 +126,7 @@ namespace BrumeServer
             soulTimer.Elapsed -= SoulTimerElapsed;
 
             gameInitTimer.Dispose();
+            endZoneTimer.Dispose();
             wallTimer.Dispose();
             altarTimer.Dispose();
             soulTimer.Dispose();
@@ -164,6 +175,31 @@ namespace BrumeServer
             room.WallTimerElapsed();
             // + Event dans le NetworkTimer
         }
+        public void StarEndZoneTimer(float time = 60000)
+        {
+            if (endZoneTimer.Enabled)
+            {
+                throw new Exception("DEMANDE DE CREATION DE EndZone AVANT LA FIN DU PRECEDENT");
+            }
+
+            endZoneTimer.Interval = time;
+
+            endZoneTimer.Enabled = true;
+
+        }
+
+        public double GetEndZoneTimerRemainingTime()
+        {
+            return endZoneTimer.TimeLeft;
+        }
+
+        public void EndZoneTimerElapsed(Object source, ElapsedEventArgs ee)
+        {
+            room.EndZoneTimerElapsed();
+            // + Event dans le NetworkTimer
+        }
+
+
         public void StartNewSoulTimer(float time = 1000)
         {
             if (soulTimer.Enabled)

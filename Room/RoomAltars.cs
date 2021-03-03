@@ -58,10 +58,11 @@ namespace BrumeServer
         public void CaptureAltar(Team team, ushort altarID)
         {
             capturedAltarCount[team]++;
+
             if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin)
             {
                 canUnlockMoreAltars = false;
-                room.StartRoundFinalPhase(altarID);
+                room.StartRoundFinalPhase(altarID, team);
             }
         }
     }

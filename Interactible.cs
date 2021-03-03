@@ -23,6 +23,7 @@ namespace BrumeServer
         public bool canProgress = true;
         public float totalProgress = 0;
 
+        public bool inOvertime = false;
         public Interactible(ushort ID, Vector3 pos, Team capturingTeam, Player capturingPlayer, InteractibleType type, Room room)
         {
             this.ID = ID;
@@ -59,6 +60,8 @@ namespace BrumeServer
 
         private void CheckCapture(Player player = null)
         {
+            CheckForEndZoneOvertime(); 
+
             if (player != null)
             {
                 if (playerTriggeredInZone.Count == 1 && playerTriggeredInZone.Contains(player)) // SI CEST LE SEUL JOUEUR
@@ -100,6 +103,28 @@ namespace BrumeServer
                     }
                 }
             }
+        }
+
+        public void CheckForEndZoneOvertime()
+        {
+            if (type == InteractibleType.EndZone && inOvertime)
+            {
+                if (playerTriggeredInZone.Count > 0)
+                {
+                    if (ContainTwoTeam() == false) // SI UNE SEUL TEAM RESTANTE
+                    {
+                        if (GetClosestPlayer().playerTeam == room.defendingEndZoneTeam)
+                        {
+                            room.EndZoneCaptured(room.defendingEndZoneTeam);
+                        }
+                    }
+                }
+                else
+                {
+                    room.EndZoneCaptured(room.defendingEndZoneTeam);
+                }
+            }
+
         }
 
         private Player GetClosestPlayer()

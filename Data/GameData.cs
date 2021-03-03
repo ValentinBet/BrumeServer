@@ -14,6 +14,7 @@ namespace BrumeServer
         public string fileName = "GameData.JSON";
         public int SpawnWallTime = 15000; // mss
         public int GameInitTime = 5000; // mss
+        public int EndZoneTime = 60000; // mss
         public int AltarLockTime = 15000; // ms
         public int FrogRespawnTime = 30000; // ms
         public int healthPackRespawnTime = 20000; // ms
@@ -55,6 +56,7 @@ namespace BrumeServer
 
             this.SpawnWallTime = newGameData.SpawnWallTime;
             this.GameInitTime = newGameData.GameInitTime;
+            this.EndZoneTime = newGameData.EndZoneTime;
             this.AltarLockTime = newGameData.AltarLockTime;
             this.FrogRespawnTime = newGameData.FrogRespawnTime;
             this.healthPackRespawnTime = newGameData.healthPackRespawnTime;
