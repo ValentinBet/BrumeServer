@@ -193,8 +193,9 @@ namespace BrumeServer
             return endZoneTimer.TimeLeft;
         }
 
-        public void EndZoneTimerElapsed(Object source, ElapsedEventArgs ee)
+        public void EndZoneTimerElapsed(Object source, ElapsedEventArgs e)
         {
+
             room.EndZoneTimerElapsed();
             // + Event dans le NetworkTimer
         }

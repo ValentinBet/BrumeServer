@@ -25,7 +25,7 @@ namespace BrumeServer
         public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
         public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
         public Team defendingEndZoneTeam;
-        public ushort endZoneAltarIDRef;
+        public ushort? endZoneAltarIDRef = null;
         // <<
 
         public bool IsStarted = false;
@@ -390,12 +390,11 @@ namespace BrumeServer
         internal void StartRoundFinalPhase(ushort altarID, Team team)
         {
             defendingEndZoneTeam = team;
-            endZoneAltarIDRef = altarID;
             Timers.StarEndZoneTimer( brumeServerRef.gameData.EndZoneTime);
             
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
-                Writer.Write(endZoneAltarIDRef);
+                Writer.Write(altarID);
 
                 using (Message Message = Message.Create(Tags.RoundFinalPhase, Writer))
                 {
@@ -516,11 +515,17 @@ namespace BrumeServer
 
         internal void EndZoneTimerElapsed()
         {
-            if (InCaptureInteractible.ContainsKey(endZoneAltarIDRef))
+            if (endZoneAltarIDRef != null)
             {
-                InCaptureInteractible[endZoneAltarIDRef].inOvertime = true;
-                InCaptureInteractible[endZoneAltarIDRef].CheckForEndZoneOvertime();
+                if (InCaptureInteractible.ContainsKey((ushort)endZoneAltarIDRef))
+                {
+                    InCaptureInteractible[(ushort)endZoneAltarIDRef].inOvertime = true;
+                    InCaptureInteractible[(ushort)endZoneAltarIDRef].CheckForEndZoneOvertime();
+                    return;
+                }
             }
+
+                EndZoneCaptured(defendingEndZoneTeam);
         }
 
         internal void WallTimerElapsed()
@@ -676,6 +681,16 @@ namespace BrumeServer
 
         public void TryCaptureNewInteractible(ushort _interID, ushort team, System.Numerics.Vector3 pos, ushort iD, InteractibleType type)
         {
+
+            if (type == InteractibleType.EndZone)
+            {
+                endZoneAltarIDRef = _interID;
+            }
+
+            if (true)
+            {
+
+            }
             if (InCaptureInteractible.ContainsKey(_interID))
             {
                 InCaptureInteractible[_interID].AddPlayerInZone(GetPlayerByID(iD));
