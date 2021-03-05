@@ -15,6 +15,7 @@ namespace BrumeServer
         public int SpawnWallTime = 15000; // mss
         public int GameInitTime = 5000; // mss
         public int EndZoneTime = 60000; // mss
+        public int EndZoneOvertime = 5000; // mss
         public int AltarLockTime = 15000; // ms
         public int FrogRespawnTime = 30000; // ms
         public int healthPackRespawnTime = 20000; // ms
@@ -27,9 +28,9 @@ namespace BrumeServer
         public int AltarCountNeededToWin = 2;
 
         public Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
-            { Character.shili, 7 },
-            { Character.A, 7 },
-            { Character.B, 7 }
+            { Character.WuXin, 7 },
+            { Character.Re, 5 },
+            { Character.Leng, 6 }
         };
 
         public GameData()

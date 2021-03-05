@@ -258,7 +258,7 @@ namespace BrumeServer
 
                     ushort _roomID = players[e.Client].Room.ID;
 
-                    if (_character == Character.shili)
+                    if (_character == Character.WuXin)
                     {
                         switch (players[e.Client].playerTeam)
                         {

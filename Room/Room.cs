@@ -226,6 +226,7 @@ namespace BrumeServer
         }
 
 
+
         public void SpawnObjPlayer(ushort ID, bool resurect = false)
         {
             using (DarkRiftWriter GameWriter = DarkRiftWriter.Create())
@@ -395,6 +396,7 @@ namespace BrumeServer
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write(altarID);
+                Writer.Write((ushort)team);
 
                 using (Message Message = Message.Create(Tags.RoundFinalPhase, Writer))
                 {
@@ -525,7 +527,35 @@ namespace BrumeServer
                 }
             }
 
-                EndZoneCaptured(defendingEndZoneTeam);
+            EndZoneCaptured(defendingEndZoneTeam);
+
+        }
+
+        internal void SetEndZoneOvertime(bool started = true)
+        {
+            if (started)
+            {
+                Timers.StartEndZoneOvertime(brumeServerRef.gameData.EndZoneOvertime);
+            } else
+            {
+                Timers.PauseEndZoneOvertime();
+            }
+
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                TeamWriter.Write(started);
+
+                using (Message Message = Message.Create(Tags.OvertimeState, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+        internal void EndZoneOvertimeElapsed()
+        {
+            EndZoneCaptured(defendingEndZoneTeam);
         }
 
         internal void WallTimerElapsed()
@@ -942,7 +972,6 @@ namespace BrumeServer
 
                 using (Message message = Message.Create(Tags.AddUltimatePointToAllTeam, writer)) // ADD
                 {
-                    Log.Message(team.ToString());
                     foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == team))
                     {
                         client.Key.SendMessage(message, SendMode.Reliable);

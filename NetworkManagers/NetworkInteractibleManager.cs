@@ -362,7 +362,7 @@ namespace BrumeServer
 
                     Room _room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
 
-                    ushort? _targetId = _room.GetPlayerCharacterInTeam(Factory.GetOtherTeam(brumeServer.players[e.Client].playerTeam), Character.shili);
+                    ushort? _targetId = _room.GetPlayerCharacterInTeam(Factory.GetOtherTeam(brumeServer.players[e.Client].playerTeam), Character.WuXin);
 
                     if (_targetId == null)
                     {
@@ -395,7 +395,7 @@ namespace BrumeServer
 
                     Room _room = brumeServer.rooms[brumeServer.players[e.Client].Room.ID];
 
-                    ushort? _targetId = _room.GetPlayerCharacterInTeam(Factory.GetOtherTeam(brumeServer.players[e.Client].playerTeam), Character.shili);
+                    ushort? _targetId = _room.GetPlayerCharacterInTeam(Factory.GetOtherTeam(brumeServer.players[e.Client].playerTeam), Character.WuXin);
 
                     if (_targetId == null)
                     {

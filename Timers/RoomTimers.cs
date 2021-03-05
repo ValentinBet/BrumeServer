@@ -18,6 +18,7 @@ namespace BrumeServer
         public NetworkTimer wallTimer;
         public NetworkTimer soulTimer;
         public NetworkTimer endZoneTimer;
+        public NetworkTimer endZoneOvertime;
 
 
         public Stopwatch gameTimer;
@@ -44,6 +45,13 @@ namespace BrumeServer
                 AutoReset = false
             };
             endZoneTimer.Elapsed += EndZoneTimerElapsed;
+
+            endZoneOvertime = new NetworkTimer
+            {
+                AutoReset = false
+            };
+            endZoneOvertime.Elapsed += EndZoneOvertimeElapsed;
+
             // wallTimer
             wallTimer = new NetworkTimer
             {
@@ -76,6 +84,7 @@ namespace BrumeServer
         {
             gameInitTimer.Enabled = false;
             endZoneTimer.Enabled = false;
+            endZoneOvertime.Enabled = false;
             wallTimer.Enabled = false;
             altarTimer.Enabled = false;
             soulTimer.Enabled = false;
@@ -124,9 +133,12 @@ namespace BrumeServer
             wallTimer.Elapsed -= GameInitTimerElapsed;
             altarTimer.Elapsed -= AltarTimerElapsed;
             soulTimer.Elapsed -= SoulTimerElapsed;
+            endZoneTimer.Elapsed -= EndZoneTimerElapsed;
+            endZoneOvertime.Elapsed -= EndZoneOvertimeElapsed;
 
             gameInitTimer.Dispose();
             endZoneTimer.Dispose();
+            endZoneOvertime.Dispose();
             wallTimer.Dispose();
             altarTimer.Dispose();
             soulTimer.Dispose();
@@ -200,6 +212,30 @@ namespace BrumeServer
             // + Event dans le NetworkTimer
         }
 
+        public void StartEndZoneOvertime(float time = 5000)
+        {
+            endZoneOvertime.Interval = time;
+
+            endZoneOvertime.Enabled = true;
+
+
+        }
+        public void PauseEndZoneOvertime(float time = 5000)
+        {
+            endZoneOvertime.Interval = time;
+            endZoneOvertime.Enabled = false;
+
+        }
+        public double GetEndZoneOvertimeRemainingTime()
+        {
+            return endZoneOvertime.TimeLeft;
+        }
+
+        public void EndZoneOvertimeElapsed(Object source, ElapsedEventArgs e)
+        {
+            room.EndZoneOvertimeElapsed();
+            // + Event dans le NetworkTimer
+        }
 
         public void StartNewSoulTimer(float time = 1000)
         {

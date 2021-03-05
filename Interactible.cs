@@ -60,7 +60,7 @@ namespace BrumeServer
 
         private void CheckCapture(Player player = null)
         {
-            CheckForEndZoneOvertime(); 
+            CheckForEndZoneOvertime(player); 
 
             if (player != null)
             {
@@ -105,7 +105,7 @@ namespace BrumeServer
             }
         }
 
-        public void CheckForEndZoneOvertime()
+        public void CheckForEndZoneOvertime(Player player = null)
         {
             if (type == InteractibleType.EndZone && inOvertime)
             {
@@ -115,14 +115,18 @@ namespace BrumeServer
                     {
                         if (GetClosestPlayer().playerTeam == room.defendingEndZoneTeam)
                         {
-                            room.EndZoneCaptured(room.defendingEndZoneTeam);
+                            room.SetEndZoneOvertime(true);
                         }
+                    } else
+                    {
+                        room.SetEndZoneOvertime(false); // Si deux team alors contest
                     }
                 }
                 else
                 {
-                    room.EndZoneCaptured(room.defendingEndZoneTeam);
+                    room.SetEndZoneOvertime(true);
                 }
+
             }
 
         }

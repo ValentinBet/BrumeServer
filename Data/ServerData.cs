@@ -16,9 +16,9 @@ namespace BrumeServer
         public enum Character : ushort
         {
             none = 0,
-            shili = 10,
-            A = 20,
-            B = 30
+            WuXin = 10,
+            Re = 20,
+            Leng = 30
         }
 
         public enum InteractibleType : ushort
@@ -45,9 +45,9 @@ namespace BrumeServer
         public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
 
         public static readonly Dictionary<Character, Player> ChampSelectSlots = new Dictionary<Character, Player>() { 
-            { Character.shili, null }, 
-            { Character.A, null },
-            { Character.B, null } 
+            { Character.WuXin, null }, 
+            { Character.Re, null },
+            { Character.Leng, null } 
         };
 
 
