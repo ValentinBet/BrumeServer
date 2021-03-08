@@ -160,7 +160,7 @@ namespace BrumeServer
                 throw new Exception("DEMANDE DE CREATION DE GameInitTimer AVANT LA FIN DU PRECEDENT");
             }
 
-            wallTimer.Interval = time;
+            wallTimer.Interval = wallTime;
 
             wallTimer.Enabled = true;
         }

@@ -521,7 +521,7 @@ namespace BrumeServer
             {
                 if (InCaptureInteractible.ContainsKey((ushort)endZoneAltarIDRef))
                 {
-                    InCaptureInteractible[(ushort)endZoneAltarIDRef].inOvertime = true;
+                    InCaptureInteractible[(ushort)endZoneAltarIDRef].endZoneTimerEnd = true;
                     InCaptureInteractible[(ushort)endZoneAltarIDRef].CheckForEndZoneOvertime();
                     return;
                 }

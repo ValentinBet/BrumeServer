@@ -40,7 +40,7 @@ namespace BrumeServer
             throwback = 3
         }
 
-        public static readonly ushort resObjInstansiateID = 5; // DEPRECATED
+       // public static readonly ushort resObjInstansiateID = 5; // DEPRECATED
 
         public static readonly List<ushort> altarsID = new List<ushort>() { 0, 1, 2 };
 
