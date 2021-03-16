@@ -32,8 +32,6 @@ namespace BrumeServer
         private NetworkObjectsManager networkObjectsManager = new NetworkObjectsManager();
         private NetworkInteractibleManager networkInteractibleManager = new NetworkInteractibleManager();
         private NetworkSpellManager networkSpellManager = new NetworkSpellManager();
-
-
         public BrumeServer(PluginLoadData pluginLoadData) : base(pluginLoadData)
         {
 
@@ -56,7 +54,6 @@ namespace BrumeServer
         #region Server<-->Client
         private void OnClientConnected(object sender, ClientConnectedEventArgs e)
         {
-            Random r = new Random();
             Player newPlayer = new Player(
                 e.Client.ID,
                 false,
@@ -124,6 +121,14 @@ namespace BrumeServer
                 else if (message.Tag == Tags.LobbyStartGame)
                 {
                     LobbyStartGame(sender, e);
+                }                
+                else if (message.Tag == Tags.StartTraining)
+                {
+                    StartTraining(sender, e);
+                }
+                else if (message.Tag == Tags.SetTrainingCharacter)
+                {
+                    SetTrainingCharacter(sender, e);
                 }
                 else if (message.Tag == Tags.ChangeName)
                 {
@@ -223,6 +228,7 @@ namespace BrumeServer
                 }
             }
         }
+
 
         private void Ping(object sender, MessageReceivedEventArgs e)
         {
@@ -518,9 +524,9 @@ namespace BrumeServer
         {
             using (DarkRiftWriter SendAllRoomsWriter = DarkRiftWriter.Create())
             {
-                SendAllRoomsWriter.Write(rooms.Count);
+                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.isATrainingRoom == false).Count());
 
-                foreach (KeyValuePair<ushort, Room> r in rooms)
+                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.isATrainingRoom == false))
                 {
                     SendAllRoomsWriter.Write(r.Value);
                 }
@@ -582,6 +588,40 @@ namespace BrumeServer
             }
 
         }
+
+        private void StartTraining(object sender, MessageReceivedEventArgs e)
+        {
+
+            lastRoomID += 1;
+
+            Room newRoom = new Room(
+            this,
+            lastRoomID,
+            players[e.Client].Name + "' TRAINING room",
+            players[e.Client],
+            e.Client,
+            6,
+            true
+            );
+
+            players[e.Client].IsHost = true;
+            players[e.Client].Room = newRoom;
+            players[e.Client].playerTeam = Team.red;
+
+            rooms.Add(lastRoomID, newRoom);
+
+            Log.Message("TRAINING ROOM CREATED BY : " + players[e.Client].ID + " - " + players[e.Client].Name);
+
+            newRoom.StartTraining(players[e.Client].ID); 
+
+
+        }
+        private void SetTrainingCharacter(object sender, MessageReceivedEventArgs e)
+        {
+
+            players[e.Client].Room.TryPickCharacter(Character.WuXin, e.Client);
+        }
+
 
         private void JoinRoom(object sender, MessageReceivedEventArgs e)
         {

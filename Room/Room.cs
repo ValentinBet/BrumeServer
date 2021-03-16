@@ -19,6 +19,7 @@ namespace BrumeServer
         public RoomTimers Timers;
         public RoomAltars Altars;
         public ChampSelect champSelect;
+
         // InGame >>
         public Dictionary<Team, ushort> Scores = new Dictionary<Team, ushort>();
         public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
@@ -28,11 +29,12 @@ namespace BrumeServer
         public ushort? endZoneAltarIDRef = null;
         // <<
 
+        public bool isATrainingRoom = false;
         public bool IsStarted = false;
         public bool GameInit = false;
 
 
-        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6)
+        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6, bool isATrainingRoom = false)
         {
             this.brumeServerRef = brumeServer;
 
@@ -48,6 +50,13 @@ namespace BrumeServer
             Players.Add(hostClient, host);
             Scores.Add(Team.blue, 0);
             Scores.Add(Team.red, 0);
+            this.isATrainingRoom = isATrainingRoom;
+            if (isATrainingRoom)
+            {
+               assignedSpawn[Team.red] = 1;
+               assignedSpawn[Team.blue] = 2;
+            }
+
         }
 
 
@@ -490,6 +499,11 @@ namespace BrumeServer
         {
             foreach (Player p in Players.Values)
             {
+                if (p.playerTeam == Team.spectator)
+                {
+                    continue;
+                }
+
                 if (!p.IsReady)
                 {
                     return false;
@@ -782,6 +796,23 @@ namespace BrumeServer
         #region ChampSelect
         internal void TryPickCharacter(Character character, IClient Iclient)
         {
+            if (isATrainingRoom)
+            {
+                Players[Iclient].playerCharacter = character;
+                champSelect.ForcePickChamp(character, Players[Iclient]);
+
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                {
+                    using (Message Message = Message.Create(Tags.SetTrainingCharacter, Writer))
+                    {
+                        foreach (KeyValuePair<IClient, Player> client in Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+
+                return;
+            }
+
             if (champSelect.TryPickChamp(Players[Iclient].playerTeam, Players[Iclient], character)) // Si slot character libre
             {
                 Players[Iclient].playerCharacter = character;
@@ -981,6 +1012,28 @@ namespace BrumeServer
             }
 
         }
+        #endregion
+
+        #region TrainingRoom
+
+        public void StartTraining(ushort playerID)
+        {
+            
+            SetAndSendInGameUniqueIDs();
+
+            using (DarkRiftWriter ClientRoomWriter = DarkRiftWriter.Create())
+            {
+                ClientRoomWriter.Write(ID);
+                ClientRoomWriter.Write(Name);
+
+                using (Message Message = Message.Create(Tags.StartTraining, ClientRoomWriter))
+                {
+                    GetPlayerClientByID(playerID).SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
+
         #endregion
 
         #region Chat
