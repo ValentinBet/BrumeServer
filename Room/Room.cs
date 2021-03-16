@@ -293,7 +293,7 @@ namespace BrumeServer
             }
         }
 
-        public void SendRota(object sender, MessageReceivedEventArgs e, float rota)
+        public void SendRota(object sender, MessageReceivedEventArgs e, short rota)
         {
             using (Message message = e.GetMessage() as Message)
             {
