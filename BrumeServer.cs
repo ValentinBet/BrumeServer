@@ -856,7 +856,7 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    float rotaY = reader.ReadInt16();
+                    short rotaY = reader.ReadInt16();
 
                     rooms[players[e.Client].Room.ID].SendRota(sender, e, rotaY);
                 }
