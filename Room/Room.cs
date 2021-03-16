@@ -455,20 +455,7 @@ namespace BrumeServer
                 player.Value.IsInGameScene = false;
             }
 
-            if (Altars.canUnlockMoreAltars)
-            {
-                Addpoints(team, 1);
-            } else
-            {
-                if ((Team)team == defendingEndZoneTeam)
-                {
-                    Addpoints(team, 2);
-                } else
-                {
-                    Addpoints(team, 1);
-                }
-
-            }
+            Addpoints(team, 1);
 
             if (Scores[(Team)team] >= brumeServerRef.gameData.RoundToWin)
             {
