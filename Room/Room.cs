@@ -260,7 +260,7 @@ namespace BrumeServer
             }
         }
 
-        public void SendMovement(object sender, MessageReceivedEventArgs e, float posX, float posZ, float rotaY)
+        public void SendMovement(object sender, MessageReceivedEventArgs e, float posX, float posZ)
         {
             using (Message message = e.GetMessage() as Message)
             {
@@ -273,7 +273,28 @@ namespace BrumeServer
                     writer.Write(posX);
                     writer.Write(posZ);
 
-                    writer.Write(rotaY);
+                    message.Serialize(writer);
+                }
+
+                foreach (KeyValuePair<IClient, Player> client in Players)
+                {
+                    if (e.Client == client.Key) { continue; }
+                    client.Key.SendMessage(message, e.SendMode);
+                }
+            }
+        }
+
+        public void SendRota(object sender, MessageReceivedEventArgs e, float rota)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+
+                using (DarkRiftWriter writer = DarkRiftWriter.Create())
+                {
+                    writer.Write(e.Client.ID);
+
+                    writer.Write(rota);
 
                     message.Serialize(writer);
                 }
@@ -281,6 +302,7 @@ namespace BrumeServer
                 foreach (KeyValuePair<IClient, Player> client in Players)
                 {
                     if (e.Client == client.Key) { continue; }
+
                     client.Key.SendMessage(message, e.SendMode);
                 }
             }

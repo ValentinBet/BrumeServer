@@ -161,6 +161,10 @@ namespace BrumeServer
                 {
                     SendPlayerMovement(sender, e);
                 }
+                else if (message.Tag == Tags.RotaPlayer)
+                {
+                    SendPlayerRota(sender, e);
+                }
                 else if (message.Tag == Tags.PlayerJoinGameScene)
                 {
                     PlayerJoinGameScene(sender, e);
@@ -792,22 +796,29 @@ namespace BrumeServer
 
         private void SendPlayerMovement(object sender, MessageReceivedEventArgs e)
         {
-            ushort _roomId;
-
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    _roomId = reader.ReadUInt16();
-
                     float newX = reader.ReadSingle();
                     float newZ = reader.ReadSingle();
 
-                    float rotaY = reader.ReadSingle();
-
                     players[e.Client].SetPos(newX, newZ);
 
-                    rooms[_roomId].SendMovement(sender, e, newX, newZ, rotaY);
+                    rooms[players[e.Client].Room.ID].SendMovement(sender, e, newX, newZ);
+                }
+            }
+        }
+
+        private void SendPlayerRota(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    float rotaY = reader.ReadInt16();
+
+                    rooms[players[e.Client].Room.ID].SendRota(sender, e, rotaY);
                 }
             }
         }
