@@ -19,7 +19,7 @@ namespace BrumeServer
     {
 #pragma warning disable CS0618 // obsolete (WRITE EVENT)
 
-        public override bool ThreadSafe => false;
+        public override bool ThreadSafe => true;
         public override Version Version => new Version(1, 0, 2);
 
         public GameData gameData = new GameData();
