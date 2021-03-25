@@ -576,8 +576,12 @@ namespace BrumeServer
 
         internal void GameInitTimerElapsed()
         {
-            AltarTimerElapsed();
-            //  UnlockAllVisionTowers(); DEPRECATED
+            // AltarTimerElapsed();
+
+            for (int i = 0; i < 3; i++)
+            {
+                AltarTimerElapsed();
+            }
         }
 
 
@@ -727,10 +731,10 @@ namespace BrumeServer
         {
             Altars.CaptureAltar(team, altarID);
 
-            if (Altars.canUnlockMoreAltars)
-            {
-                Timers.StartNewAltarTimer(brumeServerRef.gameData.AltarLockTime);
-            }
+            //if (Altars.canUnlockMoreAltars)
+            //{
+            //    Timers.StartNewAltarTimer(brumeServerRef.gameData.AltarLockTime);
+            //}
 
         }
 
@@ -784,10 +788,6 @@ namespace BrumeServer
                 endZoneAltarIDRef = _interID;
             }
 
-            if (true)
-            {
-
-            }
             if (InCaptureInteractible.ContainsKey(_interID))
             {
                 InCaptureInteractible[_interID].AddPlayerInZone(GetPlayerByID(iD));

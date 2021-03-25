@@ -186,6 +186,10 @@ namespace BrumeServer
                 {
                     Heal(sender, e);
                 }
+                else if (message.Tag == Tags.AddHealth)
+                {
+                    AddHealPoint(sender, e);
+                }
                 else if (message.Tag == Tags.KillCharacter)
                 {
                     KillCharacter(sender, e);
@@ -379,6 +383,34 @@ namespace BrumeServer
                 }
             }
         }
+
+        private void AddHealPoint(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    ushort _healPoint = reader.ReadUInt16();
+
+                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                    {
+                        Writer.Write(_healPoint);
+
+                        using (Message Message = Message.Create(Tags.AddHealth, Writer))
+                        {
+                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
+                            {
+                                if (client.Key != e.Client)
+                                {
+                                    client.Key.SendMessage(Message, SendMode.Reliable);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         private void ChangeName(object sender, MessageReceivedEventArgs e)
         {
