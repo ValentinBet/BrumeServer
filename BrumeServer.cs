@@ -230,9 +230,23 @@ namespace BrumeServer
                 {
                     OnSonarState(sender, e);
                 }
+                else if (message.Tag == Tags.AskSkipToNextRound)
+                {
+                    AskSkipToNextRound(sender, e);
+                }
             }
         }
 
+        private void AskSkipToNextRound(object sender, MessageReceivedEventArgs e)
+        {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    rooms[players[e.Client].Room.ID].NewPlayerWantToSkipEndStats();
+                }
+            }
+        }
 
         private void Ping(object sender, MessageReceivedEventArgs e)
         {

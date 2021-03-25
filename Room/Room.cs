@@ -27,6 +27,7 @@ namespace BrumeServer
         public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
         public Team defendingEndZoneTeam;
         public ushort? endZoneAltarIDRef = null;
+        public ushort skipAskPlayerCount = 0;
         // <<
 
         public bool isATrainingRoom = false;
@@ -53,8 +54,8 @@ namespace BrumeServer
             this.isATrainingRoom = isATrainingRoom;
             if (isATrainingRoom)
             {
-               assignedSpawn[Team.red] = 1;
-               assignedSpawn[Team.blue] = 2;
+                assignedSpawn[Team.red] = 1;
+                assignedSpawn[Team.blue] = 2;
             }
 
         }
@@ -69,6 +70,7 @@ namespace BrumeServer
 
         public void ResetGameData()
         {
+            skipAskPlayerCount = 0;
             GameInit = false;
             Altars.ResetAltars();
             Timers.StopTimersInstantly();
@@ -422,8 +424,8 @@ namespace BrumeServer
         internal void StartRoundFinalPhase(ushort altarID, Team team)
         {
             defendingEndZoneTeam = team;
-            Timers.StarEndZoneTimer( brumeServerRef.gameData.EndZoneTime);
-            
+            Timers.StarEndZoneTimer(brumeServerRef.gameData.EndZoneTime);
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write(altarID);
@@ -522,6 +524,47 @@ namespace BrumeServer
             return true;
         }
 
+
+        public void NewPlayerWantToSkipEndStats()
+        {
+            skipAskPlayerCount++;
+
+            if (skipAskPlayerCount >= Math.Ceiling((float)(Players.Count) / 2))
+            {
+                SkipToNext();
+            }
+            else
+            {
+                using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+                {
+                    // Recu par les joueurs déja présent dans la room
+
+                    TeamWriter.Write(skipAskPlayerCount);
+
+                    using (Message Message = Message.Create(Tags.AskSkipToNextRound, TeamWriter))
+                    {
+                        foreach (KeyValuePair<IClient, Player> client in Players)
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
+        }
+
+        public void SkipToNext()
+        {
+            skipAskPlayerCount = 0;
+            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+            {
+                // Recu par les joueurs déja présent dans la room
+
+                using (Message Message = Message.Create(Tags.StatsSkip, TeamWriter))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
         #region Timers
         public void StartGameTimer()
         {
@@ -534,7 +577,7 @@ namespace BrumeServer
         internal void GameInitTimerElapsed()
         {
             AltarTimerElapsed();
-           //  UnlockAllVisionTowers(); DEPRECATED
+            //  UnlockAllVisionTowers(); DEPRECATED
         }
 
 
@@ -559,7 +602,8 @@ namespace BrumeServer
             if (started)
             {
                 Timers.StartEndZoneOvertime(brumeServerRef.gameData.EndZoneOvertime);
-            } else
+            }
+            else
             {
                 Timers.PauseEndZoneOvertime();
             }
@@ -942,14 +986,14 @@ namespace BrumeServer
         {
 
             Player _p = GetPlayerByID(id);
-                if (_p.ultStacks + value > brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter])
-                {
+            if (_p.ultStacks + value > brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter])
+            {
                 _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
-                }
-                else
-                {
+            }
+            else
+            {
                 _p.ultStacks += value;
-                }
+            }
 
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
@@ -971,7 +1015,8 @@ namespace BrumeServer
             if ((int)_p.ultStacks - (int)value <= 0)
             {
                 _p.ultStacks = 0;
-            } else
+            }
+            else
             {
                 _p.ultStacks -= value;
             }
@@ -991,7 +1036,7 @@ namespace BrumeServer
 
         internal void AddUltimateStackToAllTeam(Team team, ushort value)
         {
-            foreach (KeyValuePair<IClient,Player> p in Players.Where(x => x.Value.playerTeam == team))
+            foreach (KeyValuePair<IClient, Player> p in Players.Where(x => x.Value.playerTeam == team))
             {
                 Player _p = GetPlayerByID(p.Key.ID);
 
@@ -1027,7 +1072,7 @@ namespace BrumeServer
 
         public void StartTraining(ushort playerID)
         {
-            
+
             SetAndSendInGameUniqueIDs();
 
             using (DarkRiftWriter ClientRoomWriter = DarkRiftWriter.Create())
