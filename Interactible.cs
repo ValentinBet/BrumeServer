@@ -68,7 +68,7 @@ namespace BrumeServer
 
         private void CheckCapture(Player player = null)
         {
-            CheckForEndZoneOvertime(player); 
+            //CheckForEndZoneOvertime(player); 
 
             if (player != null)
             {
@@ -113,46 +113,46 @@ namespace BrumeServer
             }
         }
 
-        public void CheckForEndZoneOvertime(Player player = null)
-        {
-            if (type == InteractibleType.EndZone && endZoneTimerEnd)
-            {
-                if (playerTriggeredInZone.Count > 0)
-                {
-                    if (ContainTwoTeam() == false) // SI UNE SEUL TEAM RESTANTE
-                    {
-                        if (GetClosestPlayer().playerTeam == room.defendingEndZoneTeam)
-                        {
-                            if (overtimeTimerStarted)
-                            {
-                                room.SetEndZoneOvertime(true);
-                            } else
-                            {
-                                room.EndZoneCaptured(room.defendingEndZoneTeam);
-                            }
+        //public void CheckForEndZoneOvertime(Player player = null)
+        //{
+        //    if (type == InteractibleType.EndZone && endZoneTimerEnd)
+        //    {
+        //        if (playerTriggeredInZone.Count > 0)
+        //        {
+        //            if (ContainTwoTeam() == false) // SI UNE SEUL TEAM RESTANTE
+        //            {
+        //                if (GetClosestPlayer().playerTeam == room.defendingEndZoneTeam)
+        //                {
+        //                    if (overtimeTimerStarted)
+        //                    {
+        //                        room.SetEndZoneOvertime(true);
+        //                    } else
+        //                    {
+        //                        room.EndZoneCaptured(room.defendingEndZoneTeam);
+        //                    }
 
-                        }
-                    } else
-                    {
-                        overtimeTimerStarted = true;
-                        room.SetEndZoneOvertime(false); // Si deux team alors contest
-                    }
-                }
-                else
-                {
-                    if (overtimeTimerStarted)
-                    {
-                        room.SetEndZoneOvertime(true);
-                    }
-                    else
-                    {
-                        room.EndZoneCaptured(room.defendingEndZoneTeam);
-                    }
-                }
+        //                }
+        //            } else
+        //            {
+        //                overtimeTimerStarted = true;
+        //                room.SetEndZoneOvertime(false); // Si deux team alors contest
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (overtimeTimerStarted)
+        //            {
+        //                room.SetEndZoneOvertime(true);
+        //            }
+        //            else
+        //            {
+        //                room.EndZoneCaptured(room.defendingEndZoneTeam);
+        //            }
+        //        }
 
-            }
+        //    }
 
-        }
+        //}
 
         private Player GetClosestPlayer()
         {

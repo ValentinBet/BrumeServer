@@ -426,7 +426,7 @@ namespace BrumeServer
         internal void StartRoundFinalPhase(ushort altarID, Team team)
         {
             defendingEndZoneTeam = team;
-            Timers.StarEndZoneTimer(brumeServerRef.gameData.EndZoneTime);
+           // Timers.StarEndZoneTimer(brumeServerRef.gameData.EndZoneTime);
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
@@ -596,49 +596,49 @@ namespace BrumeServer
         }
 
 
-        internal void EndZoneTimerElapsed()
-        {
-            if (endZoneAltarIDRef != null)
-            {
-                if (InCaptureInteractible.ContainsKey((ushort)endZoneAltarIDRef))
-                {
-                    InCaptureInteractible[(ushort)endZoneAltarIDRef].endZoneTimerEnd = true;
-                    InCaptureInteractible[(ushort)endZoneAltarIDRef].CheckForEndZoneOvertime();
-                    return;
-                }
-            }
+        //internal void EndZoneTimerElapsed()
+        //{
+        //    if (endZoneAltarIDRef != null)
+        //    {
+        //        if (InCaptureInteractible.ContainsKey((ushort)endZoneAltarIDRef))
+        //        {
+        //            InCaptureInteractible[(ushort)endZoneAltarIDRef].endZoneTimerEnd = true;
+        //            InCaptureInteractible[(ushort)endZoneAltarIDRef].CheckForEndZoneOvertime();
+        //            return;
+        //        }
+        //    }
 
-            EndZoneCaptured(defendingEndZoneTeam);
+        //    EndZoneCaptured(defendingEndZoneTeam);
 
-        }
+        //}
 
-        internal void SetEndZoneOvertime(bool started = true)
-        {
-            if (started)
-            {
-                Timers.StartEndZoneOvertime(brumeServerRef.gameData.EndZoneOvertime);
-            }
-            else
-            {
-                Timers.PauseEndZoneOvertime();
-            }
+        //internal void SetEndZoneOvertime(bool started = true)
+        //{
+        //    if (started)
+        //    {
+        //        Timers.StartEndZoneOvertime(brumeServerRef.gameData.EndZoneOvertime);
+        //    }
+        //    else
+        //    {
+        //        Timers.PauseEndZoneOvertime();
+        //    }
 
-            using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
-            {
-                TeamWriter.Write(started);
+        //    using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
+        //    {
+        //        TeamWriter.Write(started);
 
-                using (Message Message = Message.Create(Tags.OvertimeState, TeamWriter))
-                {
-                    foreach (KeyValuePair<IClient, Player> client in Players)
-                        client.Key.SendMessage(Message, SendMode.Reliable);
-                }
-            }
-        }
+        //        using (Message Message = Message.Create(Tags.OvertimeState, TeamWriter))
+        //        {
+        //            foreach (KeyValuePair<IClient, Player> client in Players)
+        //                client.Key.SendMessage(Message, SendMode.Reliable);
+        //        }
+        //    }
+        //}
 
-        internal void EndZoneOvertimeElapsed()
-        {
-            EndZoneCaptured(defendingEndZoneTeam);
-        }
+        //internal void EndZoneOvertimeElapsed()
+        //{
+        //    EndZoneCaptured(defendingEndZoneTeam);
+        //}
 
         internal void WallTimerElapsed()
         {

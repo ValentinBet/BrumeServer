@@ -17,8 +17,8 @@ namespace BrumeServer
         public NetworkTimer gameInitTimer;
         public NetworkTimer wallTimer;
         public NetworkTimer soulTimer;
-        public NetworkTimer endZoneTimer;
-        public NetworkTimer endZoneOvertime;
+      //  public NetworkTimer endZoneTimer;
+     //   public NetworkTimer endZoneOvertime;
 
 
         public Stopwatch gameTimer;
@@ -40,17 +40,17 @@ namespace BrumeServer
             gameInitTimer.Elapsed += GameInitTimerElapsed;
 
             // endZoneTimer
-            endZoneTimer = new NetworkTimer
-            {
-                AutoReset = false
-            };
-            endZoneTimer.Elapsed += EndZoneTimerElapsed;
+            //endZoneTimer = new NetworkTimer
+            //{
+            //    AutoReset = false
+            //};
+            //endZoneTimer.Elapsed += EndZoneTimerElapsed;
 
-            endZoneOvertime = new NetworkTimer
-            {
-                AutoReset = false
-            };
-            endZoneOvertime.Elapsed += EndZoneOvertimeElapsed;
+            //endZoneOvertime = new NetworkTimer
+            //{
+            //    AutoReset = false
+            //};
+            //endZoneOvertime.Elapsed += EndZoneOvertimeElapsed;
 
             // wallTimer
             wallTimer = new NetworkTimer
@@ -83,8 +83,8 @@ namespace BrumeServer
         public void StopTimersInstantly(bool finalize = false)
         {
             gameInitTimer.Enabled = false;
-            endZoneTimer.Enabled = false;
-            endZoneOvertime.Enabled = false;
+           // endZoneTimer.Enabled = false;
+           // endZoneOvertime.Enabled = false;
             wallTimer.Enabled = false;
             altarTimer.Enabled = false;
             soulTimer.Enabled = false;
@@ -133,12 +133,12 @@ namespace BrumeServer
             wallTimer.Elapsed -= GameInitTimerElapsed;
             altarTimer.Elapsed -= AltarTimerElapsed;
             soulTimer.Elapsed -= SoulTimerElapsed;
-            endZoneTimer.Elapsed -= EndZoneTimerElapsed;
-            endZoneOvertime.Elapsed -= EndZoneOvertimeElapsed;
+          //  endZoneTimer.Elapsed -= EndZoneTimerElapsed;
+           // endZoneOvertime.Elapsed -= EndZoneOvertimeElapsed;
 
             gameInitTimer.Dispose();
-            endZoneTimer.Dispose();
-            endZoneOvertime.Dispose();
+          // endZoneTimer.Dispose();
+           // endZoneOvertime.Dispose();
             wallTimer.Dispose();
             altarTimer.Dispose();
             soulTimer.Dispose();
@@ -187,55 +187,55 @@ namespace BrumeServer
             room.WallTimerElapsed();
             // + Event dans le NetworkTimer
         }
-        public void StarEndZoneTimer(float time = 60000)
-        {
-            if (endZoneTimer.Enabled)
-            {
-                throw new Exception("DEMANDE DE CREATION DE EndZone AVANT LA FIN DU PRECEDENT");
-            }
+        //public void StarEndZoneTimer(float time = 60000)
+        //{
+        //    if (endZoneTimer.Enabled)
+        //    {
+        //        throw new Exception("DEMANDE DE CREATION DE EndZone AVANT LA FIN DU PRECEDENT");
+        //    }
 
-            endZoneTimer.Interval = time;
+        //    endZoneTimer.Interval = time;
 
-            endZoneTimer.Enabled = true;
+        //    endZoneTimer.Enabled = true;
 
-        }
+        //}
 
-        public double GetEndZoneTimerRemainingTime()
-        {
-            return endZoneTimer.TimeLeft;
-        }
+        //public double GetEndZoneTimerRemainingTime()
+        //{
+        //    return endZoneTimer.TimeLeft;
+        //}
 
-        public void EndZoneTimerElapsed(Object source, ElapsedEventArgs e)
-        {
+        //public void EndZoneTimerElapsed(Object source, ElapsedEventArgs e)
+        //{
 
-            room.EndZoneTimerElapsed();
-            // + Event dans le NetworkTimer
-        }
+        //    room.EndZoneTimerElapsed();
+        //    // + Event dans le NetworkTimer
+        //}
 
-        public void StartEndZoneOvertime(float time = 5000)
-        {
-            endZoneOvertime.Interval = time;
+        //public void StartEndZoneOvertime(float time = 5000)
+        //{
+        //    endZoneOvertime.Interval = time;
 
-            endZoneOvertime.Enabled = true;
+        //    endZoneOvertime.Enabled = true;
 
 
-        }
-        public void PauseEndZoneOvertime(float time = 5000)
-        {
-            endZoneOvertime.Interval = time;
-            endZoneOvertime.Enabled = false;
+        //}
+        //public void PauseEndZoneOvertime(float time = 5000)
+        //{
+        //    endZoneOvertime.Interval = time;
+        //    endZoneOvertime.Enabled = false;
 
-        }
-        public double GetEndZoneOvertimeRemainingTime()
-        {
-            return endZoneOvertime.TimeLeft;
-        }
+        //}
+        //public double GetEndZoneOvertimeRemainingTime()
+        //{
+        //    return endZoneOvertime.TimeLeft;
+        //}
 
-        public void EndZoneOvertimeElapsed(Object source, ElapsedEventArgs e)
-        {
-            room.EndZoneOvertimeElapsed();
-            // + Event dans le NetworkTimer
-        }
+        //public void EndZoneOvertimeElapsed(Object source, ElapsedEventArgs e)
+        //{
+        //    room.EndZoneOvertimeElapsed();
+        //    // + Event dans le NetworkTimer
+        //}
 
         public void StartNewSoulTimer(float time = 1000)
         {
