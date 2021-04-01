@@ -25,6 +25,7 @@ namespace BrumeServer
         public Dictionary<ushort, ushort> InGameUniqueIDList = new Dictionary<ushort, ushort>();
         public Dictionary<Team, ushort> assignedSpawn = new Dictionary<Team, ushort>();
         public Dictionary<ushort, Interactible> InCaptureInteractible = new Dictionary<ushort, Interactible>();
+        public List<ushort> skippingPlayers = new List<ushort>();
         public Team defendingEndZoneTeam;
         public ushort? endZoneAltarIDRef = null;
         public ushort skipAskPlayerCount = 0;
@@ -77,6 +78,7 @@ namespace BrumeServer
             champSelect.ResetData();
             Scores.Clear();
             InGameUniqueIDList.Clear();
+            skippingPlayers.Clear();
 
             foreach (Player p in Players.Values)
             {
@@ -464,7 +466,7 @@ namespace BrumeServer
                 StopGame(team);
                 return;
             }
-
+            skippingPlayers.Clear();
             Altars.ResetAltars();
             assignedSpawn.Clear();
             SetSpawnAssignement();
@@ -525,9 +527,18 @@ namespace BrumeServer
         }
 
 
-        public void NewPlayerWantToSkipEndStats()
+        public void NewPlayerWantToSkipEndStats(ushort pId)
         {
-            skipAskPlayerCount++;
+            if (skippingPlayers.Contains(pId))
+            {
+                return;
+            }
+            else
+            {
+                skippingPlayers.Add(pId);
+                skipAskPlayerCount++;
+            }
+
 
             if (skipAskPlayerCount >= Math.Ceiling((float)(Players.Count) / 2))
             {

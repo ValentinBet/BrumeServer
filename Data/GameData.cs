@@ -19,7 +19,7 @@ namespace BrumeServer
         public int AltarLockTime = 15000; // ms
         public int FrogRespawnTime = 30000; // ms
         public int healthPackRespawnTime = 20000; // ms
-        public int UltPickupRespawnTime = 30000; // ms
+        public int UltPickupRespawnTime = 45000; // ms
         public int VisionTowerReactivateTime = 20000; // ms       
         public int BrumeSoulRespawnMinTime = 5000; // ms       
         public int BrumeSoulRespawnMaxTime = 7000; // ms       

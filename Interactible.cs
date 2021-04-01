@@ -38,9 +38,16 @@ namespace BrumeServer
 
         public void AddPlayerInZone(Player player)
         {
+
             if (playerTriggeredInZone.Contains(player))
             {
                 return;
+            }
+
+            if (playerTriggeredInZone.Count == 0)
+            {
+                this.capturingTeam = player.playerTeam;
+                this.capturingPlayer = player;
             }
 
             playerTriggeredInZone.Add(player);
@@ -82,7 +89,7 @@ namespace BrumeServer
             {
                 if (playerTriggeredInZone.Count == 0) // SI AUCUN JOUEUR
                 {
-                    StopCaptureInServer(true);
+                    StopCaptureInServer(false);
                     return;
                 }
 
@@ -90,15 +97,15 @@ namespace BrumeServer
                 {
                     if (canProgress == false && ContainTwoTeam() == false) // SI MIS SUR PAUSE ET QUE UNE SEUL TEAM RESTANTE
                     {
-                        if (playerTriggeredInZone.Contains(capturingPlayer))
+                        if (playerTriggeredInZone.Contains(capturingPlayer)) // si toujours la meme team qui capture
                         {
                             PauseProgress(false);
                         }
-                        else
+                        else // sinon
                         {
+                            ResetCapture();
                             capturingPlayer = GetClosestPlayer();
                             TryCapture(capturingPlayer);
-                            ResetCapture();
                         }
 
                     }
@@ -213,10 +220,10 @@ namespace BrumeServer
         {
             NetworkInteractibleManager.Instance.StopCapturing(ID, room);
 
-            if (finalize)
-            {
-                room.RemoveInteractible(this.ID);
-            }
+            //if (finalize)
+            //{
+            //    room.RemoveInteractible(this.ID);
+            //}
         }
 
         private void TryCapture(Player player)
@@ -228,7 +235,7 @@ namespace BrumeServer
         {
             if (canProgress)
             {
-                this.totalProgress += progress;
+                this.totalProgress = progress;
 
                 NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
 
@@ -242,14 +249,16 @@ namespace BrumeServer
         public void Captured()
         {
             NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
-
-            room.RemoveInteractible(this.ID);
+            ResetCapture();
+           // room.RemoveInteractible(this.ID);
         }
 
         private void ResetCapture()
         {
             canProgress = true;
             totalProgress = 0;
+
+            NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
         }
         private void PauseProgress(bool pause)
         {

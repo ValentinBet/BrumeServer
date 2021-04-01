@@ -247,7 +247,7 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    rooms[players[e.Client].Room.ID].NewPlayerWantToSkipEndStats();
+                    rooms[players[e.Client].Room.ID].NewPlayerWantToSkipEndStats(e.Client.ID);
                 }
             }
         }
