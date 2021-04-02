@@ -291,10 +291,10 @@ namespace BrumeServer
                         switch (players[e.Client].playerTeam)
                         {
                             case Team.red:
-                                rooms[_roomID].NewRound((ushort)Team.blue);
+                                rooms[_roomID].NewRound((ushort)Team.blue, e.Client.ID, _killerID);
                                 break;
                             case Team.blue:
-                                rooms[_roomID].NewRound((ushort)Team.red);
+                                rooms[_roomID].NewRound((ushort)Team.red, e.Client.ID, _killerID);
                                 break;
                             default:
                                 Log.Message("ERREUR EQUIPE NON EXISTANTE, BRUMESERVER.CS / l - 222", MessageType.Warning);

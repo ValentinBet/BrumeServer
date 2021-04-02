@@ -394,7 +394,7 @@ namespace BrumeServer
             }
         }
 
-        public void StopGame(ushort team = (ushort)Team.none)
+        public void StopGame(ushort team = (ushort)Team.none, ushort? killedID = null, ushort? killerID = null)
         {
             if (!GameInit)
             {
@@ -413,6 +413,18 @@ namespace BrumeServer
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write(team);
+
+                if (killedID == null || killerID == null)
+                {
+                    Writer.Write(false);
+                }
+                else
+                {
+                    Writer.Write(true);
+                    Writer.Write((ushort)killedID);
+                    Writer.Write((ushort)killerID);
+                }
+
                 using (Message Message = Message.Create(Tags.StopGame, Writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
@@ -443,7 +455,7 @@ namespace BrumeServer
             }
         }
 
-        internal void NewRound(ushort team)
+        internal void NewRound(ushort team, ushort? killedID = null, ushort? killerID = null)
         {
             if (!GameInit)
             {
@@ -463,7 +475,7 @@ namespace BrumeServer
 
             if (Scores[(Team)team] >= brumeServerRef.gameData.RoundToWin)
             {
-                StopGame(team);
+                StopGame(team, killedID, killerID);
                 return;
             }
             skippingPlayers.Clear();
@@ -480,6 +492,18 @@ namespace BrumeServer
                 Writer.Write(team);
                 Writer.Write(assignedSpawn[Team.red]);
                 Writer.Write(assignedSpawn[Team.blue]);
+
+                if (killedID == null || killerID == null)
+                {
+                    Writer.Write(false);
+                }
+                else
+                {
+                    Writer.Write(true);
+                    Writer.Write((ushort)killedID);
+                    Writer.Write((ushort)killerID);
+                }
+
 
                 using (Message Message = Message.Create(Tags.NewRound, Writer))
                 {
