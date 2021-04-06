@@ -20,6 +20,7 @@ namespace BrumeServer
         public InteractibleType type = InteractibleType.none;
         public Room room;
 
+        public bool captured = false;
         public bool canProgress = true;
         public float totalProgress = 0;
 
@@ -236,7 +237,6 @@ namespace BrumeServer
             if (canProgress)
             {
                 this.totalProgress = progress;
-
                 NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
 
                 if (totalProgress >= 1)
@@ -248,8 +248,17 @@ namespace BrumeServer
 
         public void Captured()
         {
-            NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
+            if (captured)
+            {
+                return;
+            }
+
+            captured = true;
+
             ResetCapture();
+
+            NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
+
            // room.RemoveInteractible(this.ID);
         }
 
@@ -257,6 +266,7 @@ namespace BrumeServer
         {
             canProgress = true;
             totalProgress = 0;
+            captured = false;
 
             NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
         }

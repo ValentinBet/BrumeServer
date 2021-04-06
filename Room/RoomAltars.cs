@@ -58,8 +58,9 @@ namespace BrumeServer
         public void CaptureAltar(Team team, ushort altarID)
         {
             capturedAltarCount[team]++;
-            Log.Message("Altar " + altarID + " Captured by " + team + " ---  They have " + capturedAltarCount[team] + " Altars " );
-            if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin)
+            //Log.Message("Altar " + altarID + " Captured by " + team + " ---  They have " + capturedAltarCount[team] + " Altars " );
+
+            if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin && canUnlockMoreAltars)
             {
                 canUnlockMoreAltars = false;
                 room.StartRoundFinalPhase(altarID, team);
