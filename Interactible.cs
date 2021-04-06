@@ -39,7 +39,6 @@ namespace BrumeServer
 
         public void AddPlayerInZone(Player player)
         {
-
             if (playerTriggeredInZone.Contains(player))
             {
                 return;
@@ -47,6 +46,16 @@ namespace BrumeServer
 
             if (playerTriggeredInZone.Count == 0)
             {
+                if (capturingPlayer != null)
+                {
+                    if (player.playerTeam != capturingPlayer.playerTeam)
+                    {
+                        ResetCapture();
+                    }
+                }
+
+
+
                 this.capturingTeam = player.playerTeam;
                 this.capturingPlayer = player;
             }
