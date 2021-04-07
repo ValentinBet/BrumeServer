@@ -575,6 +575,7 @@ namespace BrumeServer
                     // Recu par les joueurs déja présent dans la room
 
                     TeamWriter.Write(skipAskPlayerCount);
+                    TeamWriter.Write(pId);
 
                     using (Message Message = Message.Create(Tags.AskSkipToNextRound, TeamWriter))
                     {
@@ -765,6 +766,20 @@ namespace BrumeServer
         public void AltarCaptured(Team team, ushort altarID)
         {
             Altars.CaptureAltar(team, altarID);
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(1);
+                Writer.Write((ushort)team);
+
+                using (Message Message = Message.Create(Tags.AddHealth, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> player in Players.Where(x => x.Value.playerTeam == team))
+                    {
+                        player.Key.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
+            }
 
             //if (Altars.canUnlockMoreAltars)
             //{
