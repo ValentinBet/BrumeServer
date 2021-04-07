@@ -83,6 +83,7 @@ namespace BrumeServer
         private void OnClientDisconnected(object sender, ClientDisconnectedEventArgs e)
         {
             Player _roomPlayer = players[e.Client];
+
             if (_roomPlayer.Room != null)
             {
                 QuitRoom(e.Client, rooms[_roomPlayer.Room.ID]);
@@ -109,6 +110,10 @@ namespace BrumeServer
                 if (message.Tag == Tags.CreateRoom)
                 {
                     CreateRoom(sender, e);
+                }
+                if (message.Tag == Tags.SendAllRooms)
+                {
+                    SendAllRooms(sender, e);
                 }
                 else if (message.Tag == Tags.JoinRoom)
                 {
@@ -588,6 +593,24 @@ namespace BrumeServer
             }
         }
 
+        private void SendAllRooms(object sender, MessageReceivedEventArgs e)
+        {
+            using (DarkRiftWriter SendAllRoomsWriter = DarkRiftWriter.Create())
+            {
+                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.isATrainingRoom == false).Count());
+
+                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.isATrainingRoom == false))
+                {
+                    SendAllRoomsWriter.Write(r.Value);
+                }
+
+                using (Message Message = Message.Create(Tags.SendAllRooms, SendAllRoomsWriter))
+                {
+                    e.Client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
+
         private void CreateRoom(object sender, MessageReceivedEventArgs e)
         {
             lastRoomID += 1;
@@ -797,7 +820,7 @@ namespace BrumeServer
             if (players[Eclient].IsHost)
             {
                 SwapHost(Eclient, room);
-            }
+            }      
 
             using (DarkRiftWriter QuitWriter = DarkRiftWriter.Create())
             {
