@@ -769,7 +769,7 @@ namespace BrumeServer
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
-                Writer.Write(1);
+                Writer.Write((ushort)1);
                 Writer.Write((ushort)team);
 
                 using (Message Message = Message.Create(Tags.AddHealth, Writer))
