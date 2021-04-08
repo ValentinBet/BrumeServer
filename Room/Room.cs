@@ -774,7 +774,7 @@ namespace BrumeServer
 
                 using (Message Message = Message.Create(Tags.AddHealth, Writer))
                 {
-                    foreach (KeyValuePair<IClient, Player> player in Players.Where(x => x.Value.playerTeam == team))
+                    foreach (KeyValuePair<IClient, Player> player in Players)
                     {
                         player.Key.SendMessage(Message, SendMode.Reliable);
                     }
