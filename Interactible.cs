@@ -54,8 +54,6 @@ namespace BrumeServer
                     }
                 }
 
-
-
                 this.capturingTeam = player.playerTeam;
                 this.capturingPlayer = player;
             }

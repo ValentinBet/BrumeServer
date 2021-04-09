@@ -10,6 +10,7 @@ namespace BrumeServer
     public class RoomAltars
     {
         public List<ushort> remainingAltarID = new List<ushort>(); // Altar in game must have this ID
+        public List<ushort> capturedAltarID = new List<ushort>(); // Altar in game must have this ID
 
         public Dictionary<Team, ushort> capturedAltarCount = new Dictionary<Team, ushort>();
 
@@ -32,6 +33,12 @@ namespace BrumeServer
             foreach (ushort alrID in ServerData.altarsID)
             {
                 remainingAltarID.Add(alrID);
+
+            }
+
+            foreach (ushort alrID in ServerData.altarsID)
+            {
+                capturedAltarID.Add(alrID);
             }
         }
 
@@ -40,6 +47,7 @@ namespace BrumeServer
             canUnlockMoreAltars = true;
             capturedAltarCount.Clear();
             remainingAltarID.Clear();
+            capturedAltarID.Clear();
             InitAltars();
         }
 
@@ -57,13 +65,22 @@ namespace BrumeServer
 
         public void CaptureAltar(Team team, ushort altarID)
         {
-            capturedAltarCount[team]++;
-            //Log.Message("Altar " + altarID + " Captured by " + team + " ---  They have " + capturedAltarCount[team] + " Altars " );
+            Log.Message("TRY CAPTURE Altar " + altarID + " by " + team);
 
-            if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin && canUnlockMoreAltars)
+            if (capturedAltarID.Contains(altarID))
             {
-                canUnlockMoreAltars = false;
-                room.StartRoundFinalPhase(altarID, team);
+                capturedAltarID.Remove(altarID);
+
+                capturedAltarCount[team]++;
+
+                Log.Message("Altar " + altarID + " Captured by " + team + " ---  They have " + capturedAltarCount[team] + " Altars  at timestamp : " + room.Timers.GetGameStopWatchRemainingTime());
+
+
+                if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin && canUnlockMoreAltars)
+                {
+                    canUnlockMoreAltars = false;
+                    room.StartRoundFinalPhase(altarID, team);
+                }
             }
         }
     }
