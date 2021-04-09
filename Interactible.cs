@@ -116,7 +116,16 @@ namespace BrumeServer
                             TryCapture(capturingPlayer);
                         }
 
+                    } else if (canProgress && ContainTwoTeam() == false)
+                    {
+                        if (!playerTriggeredInZone.Contains(capturingPlayer)) // si toujours la meme team qui capture
+                        {
+                            capturingPlayer = GetClosestPlayer();
+                            TryCapture(capturingPlayer);
+                        }
                     }
+
+
                 }
             }
         }
@@ -262,11 +271,8 @@ namespace BrumeServer
 
             captured = true;
 
-            ResetCapture();
-
             NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
-
-           // room.RemoveInteractible(this.ID);
+            room.RemoveInteractible(this.ID);
         }
 
         private void ResetCapture()

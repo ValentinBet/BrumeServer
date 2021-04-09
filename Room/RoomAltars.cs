@@ -65,22 +65,22 @@ namespace BrumeServer
 
         public void CaptureAltar(Team team, ushort altarID)
         {
-            Log.Message("TRY CAPTURE Altar " + altarID + " by " + team);
-
             if (capturedAltarID.Contains(altarID))
             {
                 capturedAltarID.Remove(altarID);
 
                 capturedAltarCount[team]++;
-
-                Log.Message("Altar " + altarID + " Captured by " + team + " ---  They have " + capturedAltarCount[team] + " Altars  at timestamp : " + room.Timers.GetGameStopWatchRemainingTime());
-
+     
+                Log.Message("[ROOM : " + room.ID + "] Altar " + altarID + " is captured by " + team + " - They now have " + capturedAltarCount[team] + " Altars at timestamp : " + room.Timers.GetGameStopWatchRemainingTime());
 
                 if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin && canUnlockMoreAltars)
                 {
                     canUnlockMoreAltars = false;
                     room.StartRoundFinalPhase(altarID, team);
                 }
+            } else
+            {
+                Log.Message("Team " + team + "is trying to capture and already captured Altar " + altarID , MessageType.Warning);
             }
         }
     }

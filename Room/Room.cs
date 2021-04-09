@@ -767,19 +767,24 @@ namespace BrumeServer
         {
             Altars.CaptureAltar(team, altarID);
 
-            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            foreach (Player p in Players.Values.Where(x => x.playerTeam == team))
             {
-                Writer.Write((ushort)1);
-                Writer.Write((ushort)team);
-
-                using (Message Message = Message.Create(Tags.AddHealth, Writer))
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                 {
-                    foreach (KeyValuePair<IClient, Player> player in Players)
+                    Writer.Write(p.ID);
+                    Writer.Write(50); // TODO: change
+
+                    using (Message Message = Message.Create(Tags.Heal, Writer))
                     {
-                        player.Key.SendMessage(Message, SendMode.Reliable);
+                        foreach (KeyValuePair<IClient, Player> player in Players)
+                        {
+                            player.Key.SendMessage(Message, SendMode.Reliable);
+                        }
                     }
                 }
             }
+
+
 
             //if (Altars.canUnlockMoreAltars)
             //{
