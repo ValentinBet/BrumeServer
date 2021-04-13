@@ -890,16 +890,16 @@ namespace BrumeServer
 
         private void SpawnObjPlayer(object sender, MessageReceivedEventArgs e)
         {
-            ushort _roomId;
-
+            bool isres;
             using (Message message = e.GetMessage() as Message)
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
-                    _roomId = reader.ReadUInt16();
+                    isres = reader.ReadBoolean();
                 }
                 ushort ID = e.Client.ID;
-                rooms[_roomId].SpawnObjPlayer(ID);
+
+                rooms[players[e.Client].Room.ID].SpawnObjPlayer(ID, isres);
             }
         }
 

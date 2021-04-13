@@ -767,12 +767,13 @@ namespace BrumeServer
         {
             Altars.CaptureAltar(team, altarID);
 
-            foreach (Player p in Players.Values.Where(x => x.playerTeam == team))
+
+            foreach (KeyValuePair<IClient, Player> p in Players.Where(x => x.Value.playerTeam == team))
             {
                 using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                 {
-                    Writer.Write(p.ID);
-                    Writer.Write(50); // TODO: change
+                    Writer.Write(p.Key.ID);
+                    Writer.Write((ushort)50); // TODO: change
 
                     using (Message Message = Message.Create(Tags.Heal, Writer))
                     {
