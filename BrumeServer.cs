@@ -391,29 +391,29 @@ namespace BrumeServer
 
         private void AddHealPoint(object sender, MessageReceivedEventArgs e)
         {
-            using (Message message = e.GetMessage() as Message)
-            {
-                using (DarkRiftReader reader = message.GetReader())
-                {
-                    ushort _healPoint = reader.ReadUInt16();
+            //using (Message message = e.GetMessage() as Message)
+            //{
+            //    using (DarkRiftReader reader = message.GetReader())
+            //    {
+            //        ushort _healPoint = reader.ReadUInt16();
 
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_healPoint);
+            //        using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            //        {
+            //            Writer.Write(_healPoint);
 
-                        using (Message Message = Message.Create(Tags.AddHealth, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            //            using (Message Message = Message.Create(Tags.AddHealth, Writer))
+            //            {
+            //                foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
+            //                {
+            //                    if (client.Key != e.Client)
+            //                    {
+            //                        client.Key.SendMessage(Message, SendMode.Reliable);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
         }
 
 
@@ -719,7 +719,7 @@ namespace BrumeServer
 
             }
 
-            if (rooms[_roomID].IsStarted)
+            if (rooms[_roomID].PlayerCanEnterThis() == false)
             {
                 return;
             }

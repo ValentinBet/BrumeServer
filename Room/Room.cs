@@ -100,7 +100,7 @@ namespace BrumeServer
             }
             else
             {
-                return Team.blue;
+                return Team.red;
             }
         }
 
@@ -177,6 +177,23 @@ namespace BrumeServer
 
             return null;
         }
+
+        internal bool PlayerCanEnterThis()
+        {
+            if (IsStarted)
+            {
+                return false;
+            }
+
+            if ((ushort)Players.Count >= MaxPlayers)
+            {
+                return false;
+            }
+
+
+            return true;
+        }
+
 
 
         public void StartGame()
@@ -438,7 +455,7 @@ namespace BrumeServer
         internal void StartRoundFinalPhase(ushort altarID, Team team)
         {
             defendingEndZoneTeam = team;
-           // Timers.StarEndZoneTimer(brumeServerRef.gameData.EndZoneTime);
+            // Timers.StarEndZoneTimer(brumeServerRef.gameData.EndZoneTime);
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
@@ -767,22 +784,19 @@ namespace BrumeServer
         {
             Altars.CaptureAltar(team, altarID);
 
-
-            foreach (KeyValuePair<IClient, Player> p in Players.Where(x => x.Value.playerTeam == team))
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
-                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                {
-                    Writer.Write(p.Key.ID);
-                    Writer.Write((ushort)50); // TODO: change
+                Writer.Write((ushort)1);
+                Writer.Write((ushort)team);
 
-                    using (Message Message = Message.Create(Tags.Heal, Writer))
+                using (Message Message = Message.Create(Tags.AddHealth, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> player in Players)
                     {
-                        foreach (KeyValuePair<IClient, Player> player in Players)
-                        {
-                            player.Key.SendMessage(Message, SendMode.Reliable);
-                        }
+                        player.Key.SendMessage(Message, SendMode.Reliable);
                     }
                 }
+
             }
 
 
@@ -812,6 +826,8 @@ namespace BrumeServer
                 }
             }
         }
+
+
 
         internal void SoulTimerElapsed()
         {

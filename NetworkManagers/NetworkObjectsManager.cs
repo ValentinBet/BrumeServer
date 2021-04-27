@@ -365,6 +365,13 @@ namespace BrumeServer
             {
                 using (DarkRiftReader reader = message.GetReader())
                 {
+
+                    if (reader.Length % 17 != 0)
+                    {
+                        Log.Message("Paquet malformé recu", MessageType.Warning);
+                        return;
+                    }
+
                     ushort _serverID = reader.ReadUInt16();
 
                     bool _syncPos = reader.ReadBoolean();

@@ -19,6 +19,7 @@ namespace BrumeServer
         public Vector3 position;
         public InteractibleType type = InteractibleType.none;
         public Room room;
+        public bool contestable = false;
 
         public bool captured = false;
         public bool canProgress = true;
@@ -34,6 +35,7 @@ namespace BrumeServer
             this.type = type;
             this.room = room;
             this.capturingPlayer = capturingPlayer;
+
             AddPlayerInZone(capturingPlayer);
         }
 
@@ -107,16 +109,31 @@ namespace BrumeServer
                     {
                         if (playerTriggeredInZone.Contains(capturingPlayer)) // si toujours la meme team qui capture
                         {
+
+                            //if (type == InteractibleType.EndZone && capturingPlayer.playerTeam != room.defendingEndZoneTeam)
+                            //{
+                            //    StopCaptureInServer(false);
+                            //    return;
+                            //}
+
                             PauseProgress(false);
                         }
                         else // sinon
                         {
+
                             ResetCapture();
                             capturingPlayer = GetClosestPlayer();
+
+                            //if (type == InteractibleType.EndZone && capturingPlayer.playerTeam != room.defendingEndZoneTeam)
+                            //{
+                            //    StopCaptureInServer(false);
+                            //}
+
                             TryCapture(capturingPlayer);
                         }
 
-                    } else if (canProgress && ContainTwoTeam() == false)
+                    }
+                    else if (canProgress && ContainTwoTeam() == false)
                     {
                         if (!playerTriggeredInZone.Contains(capturingPlayer)) // si toujours la meme team qui capture
                         {
@@ -189,7 +206,8 @@ namespace BrumeServer
                 {
                     capturingP = p;
                     closestDistance = _dist;
-                } else
+                }
+                else
                 {
                     if (closestDistance > _dist)
                     {
