@@ -287,43 +287,12 @@ namespace BrumeServer
                     Character _character = (Character)reader.ReadUInt16();
 
                     // -------
-                    rooms[players[e.Client].Room.ID].AddUltimateStacks(_killerID, 1);
-
                     ushort _roomID = players[e.Client].Room.ID;
 
-                    if (_character == Character.WuXin)
-                    {
-                        switch (players[e.Client].playerTeam)
-                        {
-                            case Team.red:
-                                rooms[_roomID].NewRound((ushort)Team.blue, e.Client.ID, _killerID);
-                                break;
-                            case Team.blue:
-                                rooms[_roomID].NewRound((ushort)Team.red, e.Client.ID, _killerID);
-                                break;
-                            default:
-                                Log.Message("ERREUR EQUIPE NON EXISTANTE, BRUMESERVER.CS / l - 222", MessageType.Warning);
-                                break;
-                        }
-                        return;
-                    }
+                    // rooms[_roomID].AddUltimateStacks(_killerID, 1);
+                    rooms[_roomID].KillPlayer(_killerID, _character, e.Client);
 
 
-                    Vector3 playerPos = new Vector3(players[e.Client].X, 1, players[e.Client].Z);
-
-                  //  networkObjectsManager.ServerInstantiateObject(e.Client, ServerData.resObjInstansiateID, playerPos, Vector3.Zero); // DEPRECATED
-
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(e.Client.ID);
-                        Writer.Write(_killerID);
-
-                        using (Message Message = Message.Create(Tags.KillCharacter, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                                client.Key.SendMessage(Message, SendMode.Reliable);
-                        }
-                    }
                 }
             }
         }
@@ -338,23 +307,9 @@ namespace BrumeServer
                     ushort _targetID = reader.ReadUInt16();
                     ushort _damages = reader.ReadUInt16();
 
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_targetID);
-                        Writer.Write(_damages);
-                        Writer.Write(e.Client.ID);
+                    rooms[players[e.Client].Room.ID].PlayerTakeDamages(_targetID, _damages, e.Client);
 
-                        using (Message Message = Message.Create(Tags.Damages, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
-                    }
+
                 }
             }
         }
@@ -369,22 +324,10 @@ namespace BrumeServer
                     ushort _targetID = reader.ReadUInt16();
                     ushort _healValue = reader.ReadUInt16();
 
-                    using (DarkRiftWriter Writer = DarkRiftWriter.Create())
-                    {
-                        Writer.Write(_targetID);
-                        Writer.Write(_healValue);
+                    rooms[players[e.Client].Room.ID].PlayerHealed(_targetID, _healValue, e.Client);
 
-                        using (Message Message = Message.Create(Tags.Heal, Writer))
-                        {
-                            foreach (KeyValuePair<IClient, Player> client in rooms[players[e.Client].Room.ID].Players)
-                            {
-                                if (client.Key != e.Client)
-                                {
-                                    client.Key.SendMessage(Message, SendMode.Reliable);
-                                }
-                            }
-                        }
-                    }
+
+
                 }
             }
         }
@@ -538,7 +481,7 @@ namespace BrumeServer
                 {
                     ushort value = reader.ReadUInt16();
 
-                    rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
+                   // rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
                 }
             }
         }
@@ -565,7 +508,7 @@ namespace BrumeServer
                 {
                     Team team = (Team)reader.ReadUInt16();
                     ushort value = reader.ReadUInt16();
-                    rooms[players[e.Client].Room.ID].AddUltimateStackToAllTeam(team, value);
+                    // rooms[players[e.Client].Room.ID].AddUltimateStackToAllTeam(team, value);
                 }
             }
         }
@@ -942,7 +885,7 @@ namespace BrumeServer
                 {
                     _roomId = reader.ReadUInt16();
 
-                    ushort newFlag = reader.ReadUInt16();
+                    int newFlag = reader.ReadInt32();
 
                     rooms[_roomId].SendState(sender, e, newFlag);
                 }
@@ -983,7 +926,7 @@ namespace BrumeServer
                 {
                     _roomId = reader.ReadUInt16();
 
-                    ushort newStatus = reader.ReadUInt16();
+                    int newStatus = reader.ReadInt32();
 
                     ushort playerTargeted = reader.ReadUInt16();
 

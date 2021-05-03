@@ -71,7 +71,7 @@ namespace BrumeServer
 
                 capturedAltarCount[team]++;
      
-                Log.Message("[ROOM : " + room.ID + "] Altar " + altarID + " is captured by " + team + " - They now have " + capturedAltarCount[team] + " Altars at timestamp : " + room.Timers.GetGameStopWatchRemainingTime());
+                Log.Message("[ROOM : " + room.ID + "] Altar " + altarID + "captured by " + team + " - They now have " + capturedAltarCount[team] + " Altars - T = " + room.Timers.GetGameStopWatchRemainingTime());
 
                 if (capturedAltarCount[team] >= room.brumeServerRef.gameData.AltarCountNeededToWin && canUnlockMoreAltars)
                 {
@@ -80,7 +80,7 @@ namespace BrumeServer
                 }
             } else
             {
-                Log.Message("Team " + team + "is trying to capture and already captured Altar " + altarID , MessageType.Warning);
+                Log.Message("Team " + team + "is trying to capture an already captured Altar " + altarID , MessageType.Warning);
             }
         }
     }

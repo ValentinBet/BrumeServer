@@ -23,6 +23,14 @@ namespace BrumeServer
             }
         }
 
+        public static ushort Clamp(ushort val, ushort min, ushort max)
+        {
+            if (val.CompareTo(min) < 0) return min;
+            else if (val.CompareTo(max) > 0) return max;
+            else return val;
+        }
+
+
         public static bool CheckSendPlayerAnim(Room room, ushort idPlayer1, ushort idPlayer2)
         {
             Vector2 posPlayer1 = new Vector2(room.GetPlayerByID(idPlayer1).X, room.GetPlayerByID(idPlayer1).Z);
@@ -39,7 +47,6 @@ namespace BrumeServer
         {
             return r.Next(min, max);
         }
-
 
     }
 

@@ -3,6 +3,7 @@ using DarkRift.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using static BrumeServer.ServerData;
 
@@ -79,7 +80,7 @@ namespace BrumeServer
             Scores.Clear();
             InGameUniqueIDList.Clear();
             skippingPlayers.Clear();
-
+            ResetPlayerLife();
             foreach (Player p in Players.Values)
             {
                 p.ultStacks = 0;
@@ -205,7 +206,7 @@ namespace BrumeServer
             // InitializeUltimateDic();
             SetAndSendInGameUniqueIDs();
             SetSpawnAssignement();
-
+            ResetPlayerLife();
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write(assignedSpawn[Team.red]);
@@ -338,7 +339,7 @@ namespace BrumeServer
             }
         }
 
-        public void SendState(object sender, MessageReceivedEventArgs e, ushort _state)
+        public void SendState(object sender, MessageReceivedEventArgs e, int _state)
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
@@ -355,7 +356,6 @@ namespace BrumeServer
                 }
             }
         }
-
 
 
         internal void SendForcedMovemment(object sender, MessageReceivedEventArgs e, sbyte newXDirection, sbyte newZDirection, ushort newDuration, ushort newStrength, ushort targetId)
@@ -378,14 +378,14 @@ namespace BrumeServer
             }
         }
 
-        public void SendStatus(object sender, MessageReceivedEventArgs e, ushort _statusToSend, ushort playerTargeted)
+
+        public void SendStatus(object sender, MessageReceivedEventArgs e, int _statusToSend, ushort playerTargeted)
         {
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
                 writer.Write(e.Client.ID);
                 writer.Write(_statusToSend);
                 writer.Write(playerTargeted);
-
                 using (Message Message = Message.Create(Tags.AddStatus, writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
@@ -410,6 +410,105 @@ namespace BrumeServer
                 }
             }
         }
+
+
+        internal void PlayerHealed(ushort targetID, ushort healValue, IClient playerClient)
+        {
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(targetID);
+                Writer.Write(healValue);
+
+                Player _temp = GetPlayerByID(targetID);
+
+                ushort newLifePoint = Factory.Clamp((ushort)(_temp.lifePoint + healValue), (ushort)0, brumeServerRef.gameData.ChampMaxlife[_temp.playerCharacter]);
+
+                _temp.SetLifePoint(newLifePoint);
+
+                using (Message Message = Message.Create(Tags.Heal, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                    {
+                        if (client.Key != playerClient)
+                        {
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        internal void PlayerTakeDamages(ushort targetID, ushort damages, IClient playerClient) // playerClient == attacker
+        {
+            Player _temp = GetPlayerByID(targetID);
+
+            if ((int)_temp.lifePoint - (int)damages <= 0)
+            {
+                _temp.SetLifePoint(0);
+            } else
+            {
+                _temp.TakeDamages(damages);
+            }
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(targetID);
+                Writer.Write(damages);
+                Writer.Write(_temp.lifePoint);
+                Writer.Write(playerClient.ID);
+
+                using (Message Message = Message.Create(Tags.Damages, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                    {
+                        if (client.Key != playerClient)
+                        {
+                            client.Key.SendMessage(Message, SendMode.Reliable);
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        internal void KillPlayer(ushort killerID, Character character, IClient playerClient)
+        {
+            if (character == Character.WuXin)
+            {
+                switch (Players[playerClient].playerTeam)
+                {
+                    case Team.red:
+                        NewRound((ushort)Team.blue, playerClient.ID, killerID);
+                        break;
+                    case Team.blue:
+                        NewRound((ushort)Team.red, playerClient.ID, killerID);
+                        break;
+                    default:
+                        Log.Message("ERREUR EQUIPE NON EXISTANTE, BRUMESERVER.CS / l - 222", MessageType.Warning);
+                        break;
+                }
+                return;
+            }
+
+            // Vector3 playerPos = new Vector3(Players[playerClient].X, 1, Players[playerClient].Z);
+            //  networkObjectsManager.ServerInstantiateObject(e.Client, ServerData.resObjInstansiateID, playerPos, Vector3.Zero); // DEPRECATED
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write(playerClient.ID);
+                Writer.Write(killerID);
+
+                using (Message Message = Message.Create(Tags.KillCharacter, Writer))
+                {
+                    foreach (KeyValuePair<IClient, Player> client in Players)
+                        client.Key.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+
+        }
+
 
         public void StopGame(ushort team = (ushort)Team.none, ushort? killedID = null, ushort? killerID = null)
         {
@@ -500,6 +599,7 @@ namespace BrumeServer
             assignedSpawn.Clear();
             SetSpawnAssignement();
             defendingEndZoneTeam = Team.none;
+            ResetPlayerLife();
             GameInit = false;
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -1051,33 +1151,44 @@ namespace BrumeServer
             assignedSpawn.Add(Team.red, redTeamAssignement);
             assignedSpawn.Add(Team.blue, blueTeamAssignement);
         }
+
+
+        private void ResetPlayerLife()
+        {
+            foreach (Player p in Players.Values)
+            {
+                p.lifePoint = brumeServerRef.gameData.ChampMaxlife[p.playerCharacter];
+            }
+        }
+
+
         #endregion
 
         #region Ultimate
         public void AddUltimateStacks(ushort id, ushort value)
         {
 
-            Player _p = GetPlayerByID(id);
-            if (_p.ultStacks + value > brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter])
-            {
-                _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
-            }
-            else
-            {
-                _p.ultStacks += value;
-            }
+            //Player _p = GetPlayerByID(id);
+            //if (_p.ultStacks + value > brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter])
+            //{
+            //    _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
+            //}
+            //else
+            //{
+            //    _p.ultStacks += value;
+            //}
 
-            using (DarkRiftWriter writer = DarkRiftWriter.Create())
-            {
-                writer.Write(id);
-                writer.Write(_p.ultStacks);
+            //using (DarkRiftWriter writer = DarkRiftWriter.Create())
+            //{
+            //    writer.Write(id);
+            //    writer.Write(_p.ultStacks);
 
-                using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // SET
-                {
-                    foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == _p.playerTeam))
-                        client.Key.SendMessage(message, SendMode.Reliable);
-                }
-            }
+            //    using (Message message = Message.Create(Tags.AddUltimatePoint, writer)) // SET
+            //    {
+            //        foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == _p.playerTeam))
+            //            client.Key.SendMessage(message, SendMode.Reliable);
+            //    }
+            //}
         }
 
         internal void UseUltimateStacks(ushort iD, ushort value)
@@ -1108,34 +1219,34 @@ namespace BrumeServer
 
         internal void AddUltimateStackToAllTeam(Team team, ushort value)
         {
-            foreach (KeyValuePair<IClient, Player> p in Players.Where(x => x.Value.playerTeam == team))
-            {
-                Player _p = GetPlayerByID(p.Key.ID);
+            //foreach (KeyValuePair<IClient, Player> p in Players.Where(x => x.Value.playerTeam == team))
+            //{
+            //    Player _p = GetPlayerByID(p.Key.ID);
 
-                if (brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter] < _p.ultStacks + value)
-                {
-                    _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
-                }
-                else
-                {
-                    _p.ultStacks += value;
-                }
-            }
+            //    if (brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter] < _p.ultStacks + value)
+            //    {
+            //        _p.ultStacks = brumeServerRef.gameData.ChampMaxUltStacks[_p.playerCharacter];
+            //    }
+            //    else
+            //    {
+            //        _p.ultStacks += value;
+            //    }
+            //}
 
-            using (DarkRiftWriter writer = DarkRiftWriter.Create())
-            {
-                writer.Write((ushort)team);
-                writer.Write(value);
+            //using (DarkRiftWriter writer = DarkRiftWriter.Create())
+            //{
+            //    writer.Write((ushort)team);
+            //    writer.Write(value);
 
-                using (Message message = Message.Create(Tags.AddUltimatePointToAllTeam, writer)) // ADD
-                {
-                    foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == team))
-                    {
-                        client.Key.SendMessage(message, SendMode.Reliable);
-                    }
+            //    using (Message message = Message.Create(Tags.AddUltimatePointToAllTeam, writer)) // ADD
+            //    {
+            //        foreach (KeyValuePair<IClient, Player> client in Players.Where(x => x.Value.playerTeam == team))
+            //        {
+            //            client.Key.SendMessage(message, SendMode.Reliable);
+            //        }
 
-                }
-            }
+            //    }
+            //}
 
         }
         #endregion

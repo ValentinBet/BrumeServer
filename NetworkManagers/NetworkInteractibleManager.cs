@@ -102,7 +102,7 @@ namespace BrumeServer
                     }
                 }
             }
-        
+
         }
 
         private void TryCaptureInteractibleReceiver(object sender, MessageReceivedEventArgs e)
@@ -212,10 +212,7 @@ namespace BrumeServer
                 {
                     foreach (KeyValuePair<IClient, Player> client in room.Players)
                     {
-                        if (client.Key.ID != _senderID)
-                        {
-                            client.Key.SendMessage(Message, SendMode.Unreliable);
-                        }
+                        client.Key.SendMessage(Message, SendMode.Unreliable);
                     }
                 }
             }

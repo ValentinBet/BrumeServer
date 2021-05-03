@@ -27,6 +27,8 @@ namespace BrumeServer
 
         public bool endZoneTimerEnd = false;
         public bool overtimeTimerStarted = false;
+
+        public Dictionary<Team, int> playerCountInEachTeam = new Dictionary<Team, int>() { { Team.red, 0 }, { Team.blue, 0 } };
         public Interactible(ushort ID, Vector3 pos, Team capturingTeam, Player capturingPlayer, InteractibleType type, Room room)
         {
             this.ID = ID;
@@ -59,7 +61,7 @@ namespace BrumeServer
                 this.capturingTeam = player.playerTeam;
                 this.capturingPlayer = player;
             }
-
+            playerCountInEachTeam[player.playerTeam]++;
             playerTriggeredInZone.Add(player);
             playerTriggeredInZone.RemoveAll(item => item == null);
 
@@ -69,6 +71,7 @@ namespace BrumeServer
         {
             if (playerTriggeredInZone.Contains(player))
             {
+                playerCountInEachTeam[player.playerTeam]--;
                 playerTriggeredInZone.Remove(player);
                 playerTriggeredInZone.RemoveAll(item => item == null);
 
@@ -222,26 +225,27 @@ namespace BrumeServer
 
         public bool ContainTwoTeam()
         {
-            int red = 0;
-            int blue = 0;
 
-            foreach (Player p in playerTriggeredInZone)
-            {
-                switch (p.playerTeam)
-                {
-                    case Team.none:
-                        throw new Exception("TEAM NOT AVAILABLE");
-                    case Team.red:
-                        red++;
-                        break;
-                    case Team.blue:
-                        blue++;
-                        break;
-                    default: throw new Exception("TEAM NOT EXISTING");
-                }
-            }
+            //int red = 0;
+            //int blue = 0;
 
-            if (blue > 0 && red > 0)
+            //foreach (Player p in playerTriggeredInZone)
+            //{
+            //    switch (p.playerTeam)
+            //    {
+            //        case Team.none:
+            //            throw new Exception("TEAM NOT AVAILABLE");
+            //        case Team.red:
+            //            red++;
+            //            break;
+            //        case Team.blue:
+            //            blue++;
+            //            break;
+            //        default: throw new Exception("TEAM NOT EXISTING");
+            //    }
+            //}
+
+            if (playerCountInEachTeam[Team.red] > 0 && playerCountInEachTeam[Team.blue] > 0)
             {
                 return true;
             }
@@ -270,11 +274,38 @@ namespace BrumeServer
         {
             if (canProgress)
             {
-                this.totalProgress = progress;
+                float _temp = progress - this.totalProgress;
+
+                if (_temp > 0)
+                {
+                    if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 1)
+                    {
+                        _temp *= 0;
+                    }
+                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 2)
+                    {
+                        _temp *= 0.70f;
+                    }
+                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 3)
+                    {
+                        _temp *= 1.5f;
+                    }
+                    else
+                    {
+                        Log.Message("Max players exceed", MessageType.Error);
+                    }
+
+                    this.totalProgress = progress + _temp;
+                } else
+                {
+                    this.totalProgress = progress;
+                }
+
                 NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
 
                 if (totalProgress >= 1)
                 {
+                    totalProgress = 1;
                     Captured();
                 }
             }

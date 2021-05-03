@@ -366,11 +366,11 @@ namespace BrumeServer
                 using (DarkRiftReader reader = message.GetReader())
                 {
 
-                    if (reader.Length % 17 != 0)
-                    {
-                        Log.Message("Paquet malformé recu", MessageType.Warning);
-                        return;
-                    }
+                    //if (reader.Length % 16 != 0)
+                    //{
+                    //    Log.Message("Paquet malformé recu", MessageType.Warning);
+                    //    return;
+                    //}
 
                     ushort _serverID = reader.ReadUInt16();
 

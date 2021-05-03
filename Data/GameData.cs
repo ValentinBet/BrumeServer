@@ -27,12 +27,11 @@ namespace BrumeServer
         public int BrumeCount = 9;
         public int AltarCountNeededToWin = 2;
 
-        public Dictionary<Character, ushort> ChampMaxUltStacks = new Dictionary<Character, ushort>() {
+        public Dictionary<Character, ushort> ChampMaxlife = new Dictionary<Character, ushort>() {
             { Character.WuXin, 7 },
-            { Character.Re, 5 },
-            { Character.Leng, 6 }
+            { Character.Re, 3 },
+            { Character.Leng, 4 }
         };
-
         public GameData()
         {
 
@@ -68,7 +67,7 @@ namespace BrumeServer
             this.RoundToWin = newGameData.RoundToWin;
             this.BrumeCount = newGameData.BrumeCount;
             this.AltarCountNeededToWin = newGameData.AltarCountNeededToWin;
-            this.ChampMaxUltStacks = newGameData.ChampMaxUltStacks;
+            this.ChampMaxlife = newGameData.ChampMaxlife;
 
             Log.Message("JSON Game Data loaded !");
         }

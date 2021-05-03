@@ -17,6 +17,7 @@ namespace BrumeServer
         public ushort ultStacks { get; set; }
         public float X { get; set; }
         public float Z { get; set; }
+        public ushort lifePoint { get; set; }
 
         public Team playerTeam = Team.none;
         public Character playerCharacter = Character.none;
@@ -57,6 +58,14 @@ namespace BrumeServer
             X = newX;
             Z = newZ;
         }
+        internal void SetLifePoint(ushort life)
+        {
+            lifePoint = life;
+        }
 
+        internal void TakeDamages(ushort life)
+        {
+            lifePoint -= life;
+        }
     }
 }
