@@ -284,15 +284,15 @@ namespace BrumeServer
                     }
                     else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 2)
                     {
-                        _temp *= 0.70f;
+                        _temp *= 0.65f;
                     }
-                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 3)
+                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) >= 3)
                     {
                         _temp *= 1.5f;
                     }
                     else
                     {
-                        Log.Message("Max players exceed", MessageType.Error);
+                        Log.Message("Max players exception", MessageType.Error);
                     }
 
                     this.totalProgress = progress + _temp;

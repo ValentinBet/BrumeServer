@@ -9,12 +9,23 @@ using static BrumeServer.ServerData;
 
 namespace BrumeServer
 {
+
+    public enum RoomType
+    {
+        Classic,
+        Training,
+        Tutorial
+    }
+
+
     public class Room : IDarkRiftSerializable
     {
         public ushort ID { get; set; }
         public string Name { get; set; }
         public ushort MaxPlayers { get; set; }
         public Player Host { get; set; }
+
+        public RoomType roomType = RoomType.Classic;
         public Dictionary<IClient, Player> Players = new Dictionary<IClient, Player>();
         public BrumeServer brumeServerRef;
         public RoomTimers Timers;
@@ -32,12 +43,11 @@ namespace BrumeServer
         public ushort skipAskPlayerCount = 0;
         // <<
 
-        public bool isATrainingRoom = false;
         public bool IsStarted = false;
         public bool GameInit = false;
 
 
-        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6, bool isATrainingRoom = false)
+        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6, RoomType roomType = RoomType.Classic)
         {
             this.brumeServerRef = brumeServer;
 
@@ -53,8 +63,9 @@ namespace BrumeServer
             Players.Add(hostClient, host);
             Scores.Add(Team.blue, 0);
             Scores.Add(Team.red, 0);
-            this.isATrainingRoom = isATrainingRoom;
-            if (isATrainingRoom)
+            this.roomType = roomType;
+
+            if (roomType == RoomType.Training)
             {
                 assignedSpawn[Team.red] = 1;
                 assignedSpawn[Team.blue] = 2;
@@ -195,7 +206,33 @@ namespace BrumeServer
             return true;
         }
 
+        internal void ConvertPrivateRoomType(IClient client)
+        {
+            Timers.StopTimersInstantly();
+            InCaptureInteractible.Clear();
 
+            foreach (KeyValuePair<IClient, Player> player in Players)
+            {
+                player.Value.IsInGameScene = false;
+            }
+
+            skippingPlayers.Clear();
+            Altars.ResetAltars();
+            defendingEndZoneTeam = Team.none;
+            ResetPlayerLife();
+            GameInit = false;
+
+
+            using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+            {
+                Writer.Write((ushort)roomType);
+
+                using (Message Message = Message.Create(Tags.ConvertPrivateRoomType, Writer))
+                {
+                    client.SendMessage(Message, SendMode.Reliable);
+                }
+            }
+        }
 
         public void StartGame()
         {
@@ -227,6 +264,7 @@ namespace BrumeServer
 
         public void PlayerJoinGameScene() // Un joueur rejoint la scene de jeu
         {
+
             if (GameInit)
                 return;
 
@@ -237,7 +275,6 @@ namespace BrumeServer
                     return;
                 }
             }
-
             // Tout les joueurs sont prets à jouer
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
@@ -421,7 +458,7 @@ namespace BrumeServer
 
                 Player _temp = GetPlayerByID(targetID);
 
-                ushort newLifePoint = Factory.Clamp((ushort)(_temp.lifePoint + healValue), (ushort)0, brumeServerRef.gameData.ChampMaxlife[_temp.playerCharacter]);
+                ushort newLifePoint = Factory.Clamp((ushort)(_temp.LifePoint + healValue), (ushort)0, brumeServerRef.gameData.ChampMaxlife[_temp.playerCharacter]);
 
                 _temp.SetLifePoint(newLifePoint);
 
@@ -443,10 +480,11 @@ namespace BrumeServer
         {
             Player _temp = GetPlayerByID(targetID);
 
-            if ((int)_temp.lifePoint - (int)damages <= 0)
+            if ((int)_temp.LifePoint - (int)damages <= 0)
             {
                 _temp.SetLifePoint(0);
-            } else
+            }
+            else
             {
                 _temp.TakeDamages(damages);
             }
@@ -455,7 +493,7 @@ namespace BrumeServer
             {
                 Writer.Write(targetID);
                 Writer.Write(damages);
-                Writer.Write(_temp.lifePoint);
+                Writer.Write(_temp.LifePoint);
                 Writer.Write(playerClient.ID);
 
                 using (Message Message = Message.Create(Tags.Damages, Writer))
@@ -495,6 +533,7 @@ namespace BrumeServer
             // Vector3 playerPos = new Vector3(Players[playerClient].X, 1, Players[playerClient].Z);
             //  networkObjectsManager.ServerInstantiateObject(e.Client, ServerData.resObjInstansiateID, playerPos, Vector3.Zero); // DEPRECATED
 
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write(playerClient.ID);
@@ -506,6 +545,10 @@ namespace BrumeServer
                         client.Key.SendMessage(Message, SendMode.Reliable);
                 }
             }
+
+            Player p = GetPlayerByID(playerClient.ID);
+            p.LifePoint = p.MaxlifePoint;
+
 
         }
 
@@ -718,6 +761,7 @@ namespace BrumeServer
             }
         }
 
+
         #region Timers
         public void StartGameTimer()
         {
@@ -884,6 +928,14 @@ namespace BrumeServer
         {
             Altars.CaptureAltar(team, altarID);
 
+
+            foreach (KeyValuePair<IClient, Player> p in GetPlayerListInTeam(team))
+            {
+                p.Value.MaxlifePoint += 1;
+                p.Value.LifePoint += 1;
+
+            }
+
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
                 Writer.Write((ushort)1);
@@ -1021,14 +1073,23 @@ namespace BrumeServer
         #region ChampSelect
         internal void TryPickCharacter(Character character, IClient Iclient)
         {
-            if (isATrainingRoom)
+            if (roomType != RoomType.Classic)
             {
                 Players[Iclient].playerCharacter = character;
                 champSelect.ForcePickChamp(character, Players[Iclient]);
 
                 using (DarkRiftWriter Writer = DarkRiftWriter.Create())
                 {
-                    using (Message Message = Message.Create(Tags.SetTrainingCharacter, Writer))
+                    if (roomType == RoomType.Training)
+                    {
+                        Writer.Write(true);
+                    }
+                    else
+                    {
+                        Writer.Write(false);
+                    }
+
+                    using (Message Message = Message.Create(Tags.SetPrivateRoomCharacter, Writer))
                     {
                         foreach (KeyValuePair<IClient, Player> client in Players)
                             client.Key.SendMessage(Message, SendMode.Reliable);
@@ -1157,7 +1218,8 @@ namespace BrumeServer
         {
             foreach (Player p in Players.Values)
             {
-                p.lifePoint = brumeServerRef.gameData.ChampMaxlife[p.playerCharacter];
+                p.MaxlifePoint = brumeServerRef.gameData.ChampMaxlife[p.playerCharacter];
+                p.LifePoint = p.MaxlifePoint;
             }
         }
 
@@ -1253,17 +1315,20 @@ namespace BrumeServer
 
         #region TrainingRoom
 
-        public void StartTraining(ushort playerID)
+        public void StartPrivateRoom(ushort playerID, bool isTraining)
         {
-
             SetAndSendInGameUniqueIDs();
 
             using (DarkRiftWriter ClientRoomWriter = DarkRiftWriter.Create())
             {
+                ClientRoomWriter.Write((ushort)roomType);
+
                 ClientRoomWriter.Write(ID);
                 ClientRoomWriter.Write(Name);
 
-                using (Message Message = Message.Create(Tags.StartTraining, ClientRoomWriter))
+
+
+                using (Message Message = Message.Create(Tags.StartPrivateRoom, ClientRoomWriter))
                 {
                     GetPlayerClientByID(playerID).SendMessage(Message, SendMode.Reliable);
                 }

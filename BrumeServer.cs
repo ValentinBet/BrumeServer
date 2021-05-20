@@ -127,11 +127,15 @@ namespace BrumeServer
                 {
                     LobbyStartGame(sender, e);
                 }                
-                else if (message.Tag == Tags.StartTraining)
+                else if (message.Tag == Tags.StartPrivateRoom)
                 {
-                    StartTraining(sender, e);
+                    StartPrivateRoom(sender, e);
                 }
-                else if (message.Tag == Tags.SetTrainingCharacter)
+                else if (message.Tag == Tags.ConvertPrivateRoomType)
+                {
+                    ConvertPrivateRoomType(sender, e);
+                }
+                else if (message.Tag == Tags.SetPrivateRoomCharacter)
                 {
                     SetTrainingCharacter(sender, e);
                 }
@@ -245,6 +249,7 @@ namespace BrumeServer
                 }
             }
         }
+
 
         private void AskSkipToNextRound(object sender, MessageReceivedEventArgs e)
         {
@@ -522,9 +527,9 @@ namespace BrumeServer
         {
             using (DarkRiftWriter SendAllRoomsWriter = DarkRiftWriter.Create())
             {
-                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.isATrainingRoom == false).Count());
+                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.roomType == RoomType.Classic).Count());
 
-                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.isATrainingRoom == false))
+                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.roomType == RoomType.Classic))
                 {
                     SendAllRoomsWriter.Write(r.Value);
                 }
@@ -540,9 +545,9 @@ namespace BrumeServer
         {
             using (DarkRiftWriter SendAllRoomsWriter = DarkRiftWriter.Create())
             {
-                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.isATrainingRoom == false).Count());
+                SendAllRoomsWriter.Write(rooms.Where(x => x.Value.roomType == RoomType.Classic).Count()); ;
 
-                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.isATrainingRoom == false))
+                foreach (KeyValuePair<ushort, Room> r in rooms.Where(x => x.Value.roomType == RoomType.Classic))
                 {
                     SendAllRoomsWriter.Write(r.Value);
                 }
@@ -605,19 +610,39 @@ namespace BrumeServer
 
         }
 
-        private void StartTraining(object sender, MessageReceivedEventArgs e)
+        private void StartPrivateRoom(object sender, MessageReceivedEventArgs e)
         {
+            bool isTraining = true;
+            RoomType _temp;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    isTraining = reader.ReadBoolean();
+                }
+
+            }
 
             lastRoomID += 1;
+
+            if (isTraining)
+            {
+                _temp = RoomType.Training;
+            }
+            else
+            {
+                _temp = RoomType.Tutorial;
+            }
 
             Room newRoom = new Room(
             this,
             lastRoomID,
-            players[e.Client].Name + "' TRAINING room",
+            players[e.Client].Name + "' private room",
             players[e.Client],
             e.Client,
             6,
-            true
+            _temp
             );
 
             players[e.Client].IsHost = true;
@@ -626,16 +651,44 @@ namespace BrumeServer
 
             rooms.Add(lastRoomID, newRoom);
 
-            Log.Message("TRAINING ROOM CREATED BY : " + players[e.Client].ID + " - " + players[e.Client].Name);
+            Log.Message("Private ROOM : " + players[e.Client].ID + " - " + players[e.Client].Name);
 
-            newRoom.StartTraining(players[e.Client].ID); 
+            newRoom.StartPrivateRoom(players[e.Client].ID, isTraining); 
 
 
         }
+
+        private void ConvertPrivateRoomType(object sender, MessageReceivedEventArgs e)
+        {
+            RoomType _temp;
+
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    _temp = (RoomType)reader.ReadUInt16();
+                }
+
+               Room room = rooms[players[e.Client].Room.ID];
+
+                room.roomType = _temp;
+
+                room.ConvertPrivateRoomType(e.Client);
+            }
+        }
+
+
         private void SetTrainingCharacter(object sender, MessageReceivedEventArgs e)
         {
+            using (Message message = e.GetMessage() as Message)
+            {
+                using (DarkRiftReader reader = message.GetReader())
+                {
+                    players[e.Client].Room.TryPickCharacter((Character)reader.ReadUInt16(), e.Client);
+                }
 
-            players[e.Client].Room.TryPickCharacter(Character.WuXin, e.Client);
+            }
+
         }
 
 
@@ -988,6 +1041,7 @@ namespace BrumeServer
 
         private void PlayerJoinGameScene(object sender, MessageReceivedEventArgs e)
         {
+
             using (Message message = e.GetMessage() as Message)
             {
                 players[e.Client].IsInGameScene = true;
