@@ -23,6 +23,8 @@ namespace BrumeServer
         public Team playerTeam = Team.none;
         public Character playerCharacter = Character.none;
 
+        public En_CharacterState playerState = En_CharacterState.Clear;
+
         public bool IsInGameScene = false;
 
         public Player(ushort ID, bool isHost, string name, Team team = Team.none)
@@ -68,5 +70,61 @@ namespace BrumeServer
         {
             LifePoint -= life;
         }
+
+        internal void ResetData()
+        {
+            Room = null;
+            playerTeam = Team.none;
+            playerCharacter = Character.none;
+            IsReady = false;
+            SetPos(0, 0);
+
+        }
+
+        internal void ResetDataBetweenRounds()
+        {
+            SetPos(0, 0);
+            UpdateState(1);
+            IsInGameScene = false;
+        }
+
+        internal void UpdateState(int _state)
+        {
+            playerState = (En_CharacterState)_state;
+        }
+
+        internal bool CanTakeDamages()
+        {
+            if (playerState.HasFlag(En_CharacterState.Intangenbility) || playerState.HasFlag(En_CharacterState.Invulnerability))
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
+
+
+[System.Flags]
+public enum En_CharacterState
+{
+    Clear = 1 << 0,
+    Slowed = 1 << 1,
+    SpedUp = 1 << 2,
+    Root = 1 << 3,
+    Canalysing = 1 << 4,
+    Silenced = 1 << 5,
+    Crouched = 1 << 6,
+    Embourbed = 1 << 7,
+    WxMarked = 1 << 8,
+    Hidden = 1 << 9,
+    Invulnerability = 1 << 10,
+    Intangenbility = 1 << 11,
+    PoweredUp = 1 << 12,
+    ForcedMovement = 1 << 13,
+    StopInterpolate = 1 << 14,
+
+    Stunned = Silenced | Root,
+}
+

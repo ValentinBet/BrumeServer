@@ -78,6 +78,7 @@ namespace BrumeServer
 
         internal void Destroy()
         {
+            ResetGameData();
             Timers.StopTimersInstantly(true);
         }
 
@@ -152,6 +153,102 @@ namespace BrumeServer
             e.Writer.Write(IsStarted);
             e.Writer.Write((ushort)Players.Count); // LocalOnly
         }
+
+
+        internal void ShowInfoInConsole()
+        {
+            Log.Message("\n ROOM DEBUG \n");
+
+            Log.Message("Name = " + Name);
+            Log.Message("MaxPlayers = " + MaxPlayers);
+            Log.Message("IsStarted = " + IsStarted);
+            Log.Message("Players.Count = " + Players.Count + "\n");
+            Log.Message(" Players LIST ----------- \n");
+
+
+            foreach (KeyValuePair<IClient, Player> PKey in Players)
+            {
+                Log.Message("PLAYER " + PKey.Value.ID + "\n");
+
+                Log.Message("P. IsHost = " + PKey.Value.IsHost);
+                Log.Message("P. IsInGameScene = " + PKey.Value.IsInGameScene);
+                Log.Message("P. IsReady = " + PKey.Value.IsReady);
+                Log.Message("P. LifePoint = " + PKey.Value.LifePoint);
+                Log.Message("P. MaxlifePoint = " + PKey.Value.MaxlifePoint);
+                Log.Message("P. Name = " + PKey.Value.Name);
+                Log.Message("P. playerCharacter = " + PKey.Value.playerCharacter);
+                Log.Message("P. playerState = " + PKey.Value.playerState);
+                Log.Message("P. playerTeam = " + PKey.Value.playerTeam);
+                Log.Message("P. POS = " + PKey.Value.X + " - " + PKey.Value.Z);
+            }
+            Log.Message("\n Blue team champ select \n");
+
+
+            foreach (KeyValuePair<Character, Player> keyv in champSelect.BlueTeamCharacterPlayerPair)
+            {
+                if (keyv.Value == null)
+                {
+                    continue;
+                }
+                Log.Message("P. ID = " + keyv.Value.ID);
+                Log.Message("P. Character = " + keyv.Key);
+
+            }
+            Log.Message("\n Red team champ select \n");
+            foreach (KeyValuePair<Character, Player> keyv in champSelect.BlueTeamCharacterPlayerPair)
+            {
+                if (keyv.Value == null)
+                {
+                    continue;
+                }
+                Log.Message("P. ID = " + keyv.Value.ID);
+                Log.Message("P. Character = " + keyv.Key);
+            }
+
+            Log.Message("\n Remaining altar \n");
+
+            foreach (ushort item in Altars.remainingAltarID)
+            {
+                Log.Message(item + "");
+            }
+
+
+
+        }
+
+        internal void InteractibleInfoConsole()
+        {
+            Log.Message("\n ALL INTERACTIBLE IN CAPTURE \n");
+
+            foreach (KeyValuePair<ushort, Interactible> kv in InCaptureInteractible)
+            {
+
+                Log.Message("INT. ID = " + kv.Key);
+                Log.Message("INT. canProgress = " + kv.Value.canProgress);
+                Log.Message("INT. captured = " + kv.Value.captured);
+                Log.Message("INT. capturingPlayer = " + kv.Value.capturingPlayer.ID);
+                Log.Message("INT. capturingPlayer Name = " + kv.Value.capturingPlayer.Name);
+                Log.Message("INT. totalProgress = " + kv.Value.totalProgress);
+                Log.Message("INT. type = " + kv.Value.type);
+                Log.Message("INT. contestable = " + kv.Value.contestable);
+
+                Log.Message("\n playerCountInEachTeam \n");
+                foreach (KeyValuePair<Team, int> item in kv.Value.playerCountInEachTeam)
+                {
+                    Log.Message("INT. Count team = " + item.Key + " - " + item.Value);
+                }
+                Log.Message("\n playerTriggeredInZone \n");
+
+                foreach (Player item in kv.Value.playerTriggeredInZone)
+                {
+                    Log.Message( item.ID + " - " + item.Name);
+                }
+
+
+
+            }
+        }
+
 
         public Player GetPlayerByID(ushort ID)
         {
@@ -378,6 +475,8 @@ namespace BrumeServer
 
         public void SendState(object sender, MessageReceivedEventArgs e, int _state)
         {
+            Players[e.Client].UpdateState(_state);
+
             using (DarkRiftWriter writer = DarkRiftWriter.Create())
             {
                 writer.Write(e.Client.ID);
@@ -480,6 +579,11 @@ namespace BrumeServer
         {
             Player _temp = GetPlayerByID(targetID);
 
+            if (!_temp.CanTakeDamages())
+            {
+                return;
+            }
+
             if ((int)_temp.LifePoint - (int)damages <= 0)
             {
                 _temp.SetLifePoint(0);
@@ -565,7 +669,7 @@ namespace BrumeServer
 
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
-                player.Value.IsInGameScene = false;
+                player.Value.ResetDataBetweenRounds();
                 player.Value.playerCharacter = Character.none;
             }
 
@@ -627,7 +731,7 @@ namespace BrumeServer
 
             foreach (KeyValuePair<IClient, Player> player in Players)
             {
-                player.Value.IsInGameScene = false;
+                player.Value.ResetDataBetweenRounds();
             }
 
             Addpoints(team, 1);
@@ -637,6 +741,7 @@ namespace BrumeServer
                 StopGame(team, killedID, killerID);
                 return;
             }
+
             skippingPlayers.Clear();
             Altars.ResetAltars();
             assignedSpawn.Clear();
@@ -1073,6 +1178,9 @@ namespace BrumeServer
         #region ChampSelect
         internal void TryPickCharacter(Character character, IClient Iclient)
         {
+
+            // In tutorial / training >>
+
             if (roomType != RoomType.Classic)
             {
                 Players[Iclient].playerCharacter = character;
@@ -1098,6 +1206,8 @@ namespace BrumeServer
 
                 return;
             }
+
+            // <<
 
             if (champSelect.TryPickChamp(Players[Iclient].playerTeam, Players[Iclient], character)) // Si slot character libre
             {
@@ -1204,7 +1314,7 @@ namespace BrumeServer
             ushort redTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
             ushort blueTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
 
-            while (blueTeamAssignement == redTeamAssignement) //pas propre
+            while (blueTeamAssignement == redTeamAssignement) // pas propre
             {
                 blueTeamAssignement = (ushort)Factory.GenerateRandomNumber(1, 4);
             }
@@ -1252,6 +1362,7 @@ namespace BrumeServer
             //    }
             //}
         }
+
 
         internal void UseUltimateStacks(ushort iD, ushort value)
         {

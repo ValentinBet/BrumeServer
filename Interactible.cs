@@ -25,7 +25,6 @@ namespace BrumeServer
         public bool canProgress = true;
         public float totalProgress = 0;
 
-        public bool endZoneTimerEnd = false;
         public bool overtimeTimerStarted = false;
 
         public Dictionary<Team, int> playerCountInEachTeam = new Dictionary<Team, int>() { { Team.red, 0 }, { Team.blue, 0 } };
@@ -43,7 +42,7 @@ namespace BrumeServer
 
         public void AddPlayerInZone(Player player)
         {
-            if (playerTriggeredInZone.Contains(player))
+            if (playerTriggeredInZone.Contains(player) || captured)
             {
                 return;
             }
@@ -61,6 +60,7 @@ namespace BrumeServer
                 this.capturingTeam = player.playerTeam;
                 this.capturingPlayer = player;
             }
+
             playerCountInEachTeam[player.playerTeam]++;
             playerTriggeredInZone.Add(player);
             playerTriggeredInZone.RemoveAll(item => item == null);
@@ -69,6 +69,11 @@ namespace BrumeServer
         }
         public void RemovePlayerInZone(Player player)
         {
+            if (captured)
+            {
+                return;
+            }
+
             if (playerTriggeredInZone.Contains(player))
             {
                 playerCountInEachTeam[player.playerTeam]--;
@@ -81,7 +86,6 @@ namespace BrumeServer
 
         private void CheckCapture(Player player = null)
         {
-            //CheckForEndZoneOvertime(player); 
 
             if (player != null)
             {
@@ -112,13 +116,6 @@ namespace BrumeServer
                     {
                         if (playerTriggeredInZone.Contains(capturingPlayer)) // si toujours la meme team qui capture
                         {
-
-                            //if (type == InteractibleType.EndZone && capturingPlayer.playerTeam != room.defendingEndZoneTeam)
-                            //{
-                            //    StopCaptureInServer(false);
-                            //    return;
-                            //}
-
                             PauseProgress(false);
                         }
                         else // sinon
@@ -126,11 +123,6 @@ namespace BrumeServer
 
                             ResetCapture();
                             capturingPlayer = GetClosestPlayer();
-
-                            //if (type == InteractibleType.EndZone && capturingPlayer.playerTeam != room.defendingEndZoneTeam)
-                            //{
-                            //    StopCaptureInServer(false);
-                            //}
 
                             TryCapture(capturingPlayer);
                         }
@@ -149,47 +141,6 @@ namespace BrumeServer
                 }
             }
         }
-
-        //public void CheckForEndZoneOvertime(Player player = null)
-        //{
-        //    if (type == InteractibleType.EndZone && endZoneTimerEnd)
-        //    {
-        //        if (playerTriggeredInZone.Count > 0)
-        //        {
-        //            if (ContainTwoTeam() == false) // SI UNE SEUL TEAM RESTANTE
-        //            {
-        //                if (GetClosestPlayer().playerTeam == room.defendingEndZoneTeam)
-        //                {
-        //                    if (overtimeTimerStarted)
-        //                    {
-        //                        room.SetEndZoneOvertime(true);
-        //                    } else
-        //                    {
-        //                        room.EndZoneCaptured(room.defendingEndZoneTeam);
-        //                    }
-
-        //                }
-        //            } else
-        //            {
-        //                overtimeTimerStarted = true;
-        //                room.SetEndZoneOvertime(false); // Si deux team alors contest
-        //            }
-        //        }
-        //        else
-        //        {
-        //            if (overtimeTimerStarted)
-        //            {
-        //                room.SetEndZoneOvertime(true);
-        //            }
-        //            else
-        //            {
-        //                room.EndZoneCaptured(room.defendingEndZoneTeam);
-        //            }
-        //        }
-
-        //    }
-
-        //}
 
         private Player GetClosestPlayer()
         {
@@ -267,11 +218,22 @@ namespace BrumeServer
 
         private void TryCapture(Player player)
         {
+            if (captured)
+            {
+                return;
+            }
+
             NetworkInteractibleManager.Instance.TryCaptureInteractible(ID, player);
         }
 
         public void CaptureProgress(float progress)
         {
+            if (captured)
+            {
+                return;
+            }
+
+
             if (canProgress)
             {
                 float _temp = progress - this.totalProgress;
@@ -320,8 +282,10 @@ namespace BrumeServer
 
             captured = true;
 
-            NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
             room.RemoveInteractible(this.ID);
+
+            NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
+
         }
 
         private void ResetCapture()

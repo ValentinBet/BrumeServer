@@ -126,7 +126,7 @@ namespace BrumeServer
                 else if (message.Tag == Tags.LobbyStartGame)
                 {
                     LobbyStartGame(sender, e);
-                }                
+                }
                 else if (message.Tag == Tags.StartPrivateRoom)
                 {
                     StartPrivateRoom(sender, e);
@@ -486,7 +486,7 @@ namespace BrumeServer
                 {
                     ushort value = reader.ReadUInt16();
 
-                   // rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
+                    // rooms[players[e.Client].Room.ID].AddUltimateStacks(e.Client.ID, value);
                 }
             }
         }
@@ -610,6 +610,7 @@ namespace BrumeServer
 
         }
 
+
         private void StartPrivateRoom(object sender, MessageReceivedEventArgs e)
         {
             bool isTraining = true;
@@ -653,7 +654,7 @@ namespace BrumeServer
 
             Log.Message("Private ROOM : " + players[e.Client].ID + " - " + players[e.Client].Name);
 
-            newRoom.StartPrivateRoom(players[e.Client].ID, isTraining); 
+            newRoom.StartPrivateRoom(players[e.Client].ID, isTraining);
 
 
         }
@@ -669,7 +670,7 @@ namespace BrumeServer
                     _temp = (RoomType)reader.ReadUInt16();
                 }
 
-               Room room = rooms[players[e.Client].Room.ID];
+                Room room = rooms[players[e.Client].Room.ID];
 
                 room.roomType = _temp;
 
@@ -810,13 +811,14 @@ namespace BrumeServer
             }
 
             players[Eclient].Room = null;
-            players[Eclient].playerTeam = Team.none;
+            players[Eclient].ResetData();
+
 
 
             if (players[Eclient].IsHost)
             {
                 SwapHost(Eclient, room);
-            }      
+            }
 
             using (DarkRiftWriter QuitWriter = DarkRiftWriter.Create())
             {
@@ -1199,6 +1201,70 @@ namespace BrumeServer
                 }
             }
         }
+
+
+
+        public override Command[] Commands => new Command[]
+        {
+            new Command("GetRoomInfo", "Retreives the room info from the game.", "room info (-room=<id>)", RoomCommand),
+        new Command("GetRoomInterInfo", "Retreives the room inter info from the game.", "room info (-room=<id>)", InteractibleCommand)
+        };
+
+
+        void RoomCommand(object sender, CommandEventArgs e)
+        {
+            if (e.RawArguments[0] == null)
+            {
+                Log.Message("NEED ROOM ID AS PARAMETERS", MessageType.Error);
+                return;
+            }
+
+            ushort roomID = Convert.ToUInt16(e.RawArguments[0]);
+
+            Room r = null;
+            if (rooms.ContainsKey(roomID))
+            {
+               r = rooms[roomID];
+            } else
+            {
+                Log.Message("Room ID not existing", MessageType.Error);
+                return;
+            }
+
+            r.ShowInfoInConsole();
+
+
+        }
+
+
+
+
+        void InteractibleCommand(object sender, CommandEventArgs e)
+        {
+            if (e.RawArguments[0] == null)
+            {
+                Log.Message("NEED ROOM ID AS PARAMETERS", MessageType.Error);
+                return;
+            }
+
+            ushort roomID = Convert.ToUInt16(e.RawArguments[0]);
+
+            Room r = null;
+            if (rooms.ContainsKey(roomID))
+            {
+                r = rooms[roomID];
+            }
+            else
+            {
+                Log.Message("Room ID not existing", MessageType.Error);
+                return;
+            }
+
+            r.InteractibleInfoConsole();
+
+
+        }
+
 
 
 
