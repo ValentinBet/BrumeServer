@@ -557,7 +557,7 @@ namespace BrumeServer
 
                 Player _temp = GetPlayerByID(targetID);
 
-                ushort newLifePoint = Factory.Clamp((ushort)(_temp.LifePoint + healValue), (ushort)0, brumeServerRef.gameData.ChampMaxlife[_temp.playerCharacter]);
+                ushort newLifePoint = Factory.Clamp((ushort)(_temp.LifePoint + healValue), (ushort)0, _temp.MaxlifePoint);
 
                 _temp.SetLifePoint(newLifePoint);
 
@@ -586,7 +586,7 @@ namespace BrumeServer
 
             if ((int)_temp.LifePoint - (int)damages <= 0)
             {
-                _temp.SetLifePoint(0);
+                _temp.SetLifePoint((ushort)0);
             }
             else
             {
@@ -1036,8 +1036,8 @@ namespace BrumeServer
 
             foreach (KeyValuePair<IClient, Player> p in GetPlayerListInTeam(team))
             {
-                p.Value.MaxlifePoint += 1;
-                p.Value.LifePoint += 1;
+                p.Value.MaxlifePoint += (ushort)1;
+                p.Value.LifePoint += (ushort)1;
 
             }
 
