@@ -232,45 +232,16 @@ namespace BrumeServer
             {
                 return;
             }
-
-
-            if (canProgress)
-            {
-                float _temp = progress - this.totalProgress;
-
-                if (_temp > 0)
-                {
-                    if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 1)
-                    {
-                        _temp *= 0;
-                    }
-                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) == 2)
-                    {
-                        _temp *= 0.65f;
-                    }
-                    else if ((playerCountInEachTeam[capturingPlayer.playerTeam]) >= 3)
-                    {
-                        _temp *= 1.5f;
-                    }
-                    else
-                    {
-                        Log.Message("Max players exception", MessageType.Error);
-                    }
-
-                    this.totalProgress = progress + _temp;
-                } else
-                {
-                    this.totalProgress = progress;
-                }
-
-                NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
+              this.totalProgress = progress;
 
                 if (totalProgress >= 1)
                 {
                     totalProgress = 1;
                     Captured();
-                }
-            }
+                } else
+                {
+                    NetworkInteractibleManager.Instance.SendInteractibleProgress(ID, capturingPlayer.ID, totalProgress, room);
+                }          
         }
 
         public void Captured()
@@ -279,11 +250,9 @@ namespace BrumeServer
             {
                 return;
             }
-
+            totalProgress = 0;
             captured = true;
-
             room.RemoveInteractible(this.ID);
-
             NetworkInteractibleManager.Instance.CaptureInteractible(ID, capturingPlayer, type, room);
 
         }

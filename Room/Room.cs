@@ -47,7 +47,7 @@ namespace BrumeServer
         public bool GameInit = false;
 
 
-        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 6, RoomType roomType = RoomType.Classic)
+        public Room(BrumeServer brumeServer, ushort ID, string name, Player host, IClient hostClient, ushort maxPlayers = 8, RoomType roomType = RoomType.Classic)
         {
             this.brumeServerRef = brumeServer;
 
@@ -241,7 +241,7 @@ namespace BrumeServer
 
                 foreach (Player item in kv.Value.playerTriggeredInZone)
                 {
-                    Log.Message( item.ID + " - " + item.Name);
+                    Log.Message(item.ID + " - " + item.Name);
                 }
 
 
@@ -504,6 +504,13 @@ namespace BrumeServer
                 writer.Write(newStrength);
                 writer.Write(targetId);
 
+
+                if (GetPlayerByID(targetId).CanTakeDamages() == false)
+                {
+                    return;
+                }
+
+
                 using (Message Message = Message.Create(Tags.AddForcedMovement, writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
@@ -522,6 +529,16 @@ namespace BrumeServer
                 writer.Write(e.Client.ID);
                 writer.Write(_statusToSend);
                 writer.Write(playerTargeted);
+
+                if (_statusToSend != 3)
+                {
+                    if (GetPlayerByID(playerTargeted).CanTakeDamages() == false)
+                    {
+                        return;
+                    }
+                }
+
+
                 using (Message Message = Message.Create(Tags.AddStatus, writer))
                 {
                     foreach (KeyValuePair<IClient, Player> client in Players)
@@ -580,7 +597,17 @@ namespace BrumeServer
             Player _temp = GetPlayerByID(targetID);
 
             if (!_temp.CanTakeDamages())
-            {
+            { //ROLLBACK
+                using (DarkRiftWriter Writer = DarkRiftWriter.Create())
+                {
+                    Writer.Write(targetID);
+                    Writer.Write(damages);
+
+                    using (Message Message = Message.Create(Tags.Heal, Writer))
+                    {
+                        playerClient.SendMessage(Message, SendMode.Reliable);
+                    }
+                }
                 return;
             }
 
@@ -592,6 +619,7 @@ namespace BrumeServer
             {
                 _temp.TakeDamages(damages);
             }
+
 
             using (DarkRiftWriter Writer = DarkRiftWriter.Create())
             {
@@ -651,8 +679,8 @@ namespace BrumeServer
             }
 
             Player p = GetPlayerByID(playerClient.ID);
-            p.LifePoint = p.MaxlifePoint;
 
+            p.LifePoint = p.MaxlifePoint;
 
         }
 
@@ -853,6 +881,7 @@ namespace BrumeServer
 
         public void SkipToNext()
         {
+            InCaptureInteractible.Clear();
             skipAskPlayerCount = 0;
             using (DarkRiftWriter TeamWriter = DarkRiftWriter.Create())
             {
@@ -1328,6 +1357,10 @@ namespace BrumeServer
         {
             foreach (Player p in Players.Values)
             {
+                if (p.playerTeam == Team.spectator)
+                {
+                    continue;
+                }
                 p.MaxlifePoint = brumeServerRef.gameData.ChampMaxlife[p.playerCharacter];
                 p.LifePoint = p.MaxlifePoint;
             }

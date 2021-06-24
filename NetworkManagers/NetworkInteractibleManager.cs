@@ -212,6 +212,10 @@ namespace BrumeServer
                 {
                     foreach (KeyValuePair<IClient, Player> client in room.Players)
                     {
+                        if (client.Key.ID == _senderID)
+                        {
+                            continue;
+                        }
                         client.Key.SendMessage(Message, SendMode.Unreliable);
                     }
                 }
